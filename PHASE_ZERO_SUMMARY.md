@@ -249,15 +249,17 @@ CREATE TABLE audit_log (
    - Feature addition guides
    - Troubleshooting section
 
-3. **LICENSE** - MIT License
+3. **LICENSE** - Proprietary license with reference to third-party components
 
-4. **PHASE_ZERO_SUMMARY.md** - This document
+4. **THIRD_PARTY_LICENSES.md** - Attribution for open-source components (Tauri, React, Sea-ORM, Frank Zhang's zh-Hans-CN translation, etc.)
 
-5. **DETAILED_ROADMAP.md** - Already existing, full project roadmap
+5. **PHASE_ZERO_SUMMARY.md** - This document
 
-6. **LOGBOOK.md** - Already existing, development log
+6. **DETAILED_ROADMAP.md** - Already existing, full project roadmap
 
-7. **.gitignore** - Comprehensive ignore rules
+7. **LOGBOOK.md** - Already existing, development log
+
+8. **.gitignore** - Comprehensive ignore rules
    - Node/NPM files
    - Rust/Cargo files
    - Build outputs

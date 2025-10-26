@@ -1,21 +1,52 @@
-MIT License
+# Proprietary License
 
-Copyright (c) 2025 BEAR LLM AI Contributors
+Copyright (c) 2025 BEAR LLM AI. All Rights Reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## License Grant
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+This software and associated documentation files (the "Software") are the proprietary
+and confidential property of BEAR LLM AI ("the Owner").
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+## Restrictions
+
+You may NOT, without prior written permission from the Owner:
+
+1. Use, copy, modify, merge, publish, distribute, sublicense, or sell copies of the Software
+2. Permit persons to whom the Software is furnished to do so
+3. Reverse engineer, decompile, or disassemble the Software
+4. Remove or alter any proprietary notices or labels on the Software
+5. Create derivative works based on the Software
+
+## Permitted Use
+
+This Software is provided for evaluation and demonstration purposes only. Any commercial
+use, production deployment, or distribution requires a separate commercial license
+agreement with the Owner.
+
+## Third-Party Components
+
+This Software incorporates certain third-party open-source components that are licensed
+under their respective open-source licenses. See THIRD_PARTY_LICENSES.md for details.
+
+The use of these third-party components does not grant any rights to use, copy, modify,
+or distribute the Software as a whole under those open-source licenses.
+
+## Disclaimer
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE OWNER BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+## Contact
+
+For licensing inquiries, please contact:
+- Email: [Your contact email]
+- Website: [Your website]
+
+---
+
+**NOTICE**: Unauthorized copying, distribution, or use of this Software is strictly
+prohibited and may result in severe civil and criminal penalties.

@@ -247,7 +247,11 @@ We welcome contributions! Please see [DEVELOPMENT.md](./DEVELOPMENT.md) for deve
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**BEAR LLM AI is proprietary software.** See the [LICENSE](LICENSE) file for the full license terms.
+
+### Third-Party Components
+
+This software incorporates certain third-party open-source components. See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for attribution and license information for these components.
 
 ## 🙏 Acknowledgments
 
