@@ -1,5 +1,7 @@
-// src-tauri/migration/src/m20250101_000003_create_audit_log.rs
 use sea_orm_migration::prelude::*;
+
+#[derive(DeriveMigrationName)]
+pub struct Migration;
 
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
@@ -21,30 +23,32 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(AuditLog::EntityType).string())
                     .col(ColumnDef::new(AuditLog::EntityId).integer())
                     .col(ColumnDef::new(AuditLog::Details).json())
-                    .col(ColumnDef::new(AuditLog::Timestamp).timestamp().not_null())
+                    .col(
+                        ColumnDef::new(AuditLog::Timestamp)
+                            .timestamp()
+                            .not_null()
+                            .default(Expr::current_timestamp()),
+                    )
                     .to_owned(),
             )
             .await
     }
+
+    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_table(Table::drop().table(AuditLog::Table).to_owned())
+            .await
+    }
 }
 
-// src-tauri/src/services/audit.rs
-use sea_orm::*;
-use serde_json::Value;
-
-pub struct AuditService;
-
-impl AuditService {
-    pub async fn log(
-        db: &DatabaseConnection,
-        action: &str,
-        case_id: Option<i32>,
-        entity_type: Option<&str>,
-        entity_id: Option<i32>,
-        details: Value,
-    ) -> Result<(), DbErr> {
-        // Insert audit log entry
-        // For now, just structure - actual logging added in Phase 1
-        Ok(())
-    }
+#[derive(Iden)]
+enum AuditLog {
+    Table,
+    Id,
+    Action,
+    CaseId,
+    EntityType,
+    EntityId,
+    Details,
+    Timestamp,
 }
