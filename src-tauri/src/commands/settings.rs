@@ -129,3 +129,19 @@ pub async fn set_setting(
 pub fn get_app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
+
+// ---------- TESTS ----------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_app_version_returns_non_empty_string() {
+        let version = get_app_version();
+        assert!(
+            !version.is_empty(),
+            "Expected non-empty version string, got empty string"
+        );
+    }
+}
