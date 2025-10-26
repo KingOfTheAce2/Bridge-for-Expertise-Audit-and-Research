@@ -2,10 +2,36 @@
 
 Copyright (c) 2025 BEAR LLM AI. All Rights Reserved.
 
+## OpenCode Philosophy: Built in Public, Owned Privately
+
+BEAR LLM AI is developed entirely in public view. Every line of code, every feature,
+and every architectural decision is visible in our public repository. We believe that
+**transparency builds trust**, and trust is essential when working with sensitive legal data.
+
+**However, public visibility does not mean public licensing.** This software remains
+proprietary and is protected by copyright law.
+
 ## License Grant
 
 This software and associated documentation files (the "Software") are the proprietary
 and confidential property of BEAR LLM AI ("the Owner").
+
+The Software is made publicly visible for purposes of:
+- **Transparency**: Allowing legal professionals to audit and verify our security practices
+- **Trust**: Building confidence through open development
+- **Collaboration**: Inviting feedback and security researchers to help improve the Software
+- **Education**: Demonstrating best practices in privacy-focused software development
+
+## MIT Licensed Exceptions
+
+Certain portions of this Software may be explicitly marked with MIT License headers
+in the source code files. Only those specifically marked portions are licensed under
+the MIT License. All other code remains proprietary.
+
+To identify MIT Licensed code:
+- Look for files containing an MIT License header at the top
+- Only code explicitly marked with "SPDX-License-Identifier: MIT" is MIT licensed
+- When in doubt, assume the code is proprietary
 
 ## Restrictions
 

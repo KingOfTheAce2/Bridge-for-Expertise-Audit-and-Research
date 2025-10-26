@@ -247,7 +247,18 @@ We welcome contributions! Please see [DEVELOPMENT.md](./DEVELOPMENT.md) for deve
 
 ## 📝 License
 
-**BEAR LLM AI is proprietary software.** See the [LICENSE](LICENSE) file for the full license terms.
+### OpenCode Philosophy: Building in Public for Trust and Collaboration
+
+**BEAR LLM AI builds everything in public** - every line of code, every feature, and every decision is visible in this repository. We believe that transparency builds trust, and trust is essential when handling sensitive legal matters.
+
+**However, this is proprietary software.** The codebase is publicly visible but not freely licensed, except where explicitly marked otherwise.
+
+- **Default License**: All code is proprietary and copyright protected unless stated otherwise
+- **MIT Licensed Components**: Certain portions of the code are licensed under the MIT License (clearly marked in source files with license headers)
+- **Read the Code, Don't Copy**: You can read, learn from, and audit our code, but you cannot use it in your own projects without permission
+- **Why Build in Public?**: Legal professionals need to trust their tools. By building openly, we invite scrutiny, collaboration, and transparency while protecting our intellectual property
+
+See the [LICENSE](LICENSE) file for complete legal terms.
 
 ### Third-Party Components
 
