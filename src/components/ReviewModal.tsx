@@ -1,4 +1,7 @@
 // src/components/ReviewModal.tsx
+import React, { useState } from 'react';
+import AIBadge from './AIBadge';
+
 interface ReviewModalProps {
   title: string;
   content: string;
@@ -24,8 +27,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
   const [isEditing, setIsEditing] = useState(false);
 
   return (
-    <Dialog>
-      <div className="max-w-4xl p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="max-w-4xl p-6 bg-white rounded-lg shadow-xl">
         <h2 className="text-xl font-bold mb-4">{title}</h2>
 
         {/* Show AI badge if applicable */}
@@ -94,6 +97,6 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
           )}
         </div>
       </div>
-    </Dialog>
+    </div>
   );
 };

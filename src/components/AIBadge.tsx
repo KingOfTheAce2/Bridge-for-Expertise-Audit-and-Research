@@ -52,7 +52,14 @@ export const HumanContentBadge = () => (
 );
 
 // Message component with AI badge
-const Message = ({ role, content, isAiGenerated, wasEdited }) => {
+interface MessageProps {
+  role: 'user' | 'assistant';
+  content: string;
+  isAiGenerated?: boolean;
+  wasEdited?: boolean;
+}
+
+const Message: React.FC<MessageProps> = ({ role, content, isAiGenerated, wasEdited }) => {
   return (
     <div className={`message ${role === 'user' ? 'user' : 'assistant'}`}>
       {isAiGenerated && <AIBadge wasEdited={wasEdited} />}
