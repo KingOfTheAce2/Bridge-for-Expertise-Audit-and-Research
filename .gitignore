@@ -11,6 +11,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# TypeScript
+*.tsbuildinfo
+
 # Tauri / Rust
 src-tauri/target
 # src-tauri/Cargo.lock  # DO NOT ignore - needed for reproducible builds
@@ -37,6 +40,7 @@ src-tauri/target
 !.vscode/extensions.json
 !.vscode/settings.json
 .idea
+.claude/
 *.swp
 *.swo
 *~
