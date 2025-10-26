@@ -1,0 +1,13 @@
+# Node
+node_modules
+dist
+*.log
+
+# Tauri / Rust
+src-tauri/target
+/.cargo
+**/*.rs.bk
+
+# OS
+.DS_Store
+Thumbs.db
