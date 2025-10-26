@@ -5,3 +5,7 @@ edition = "2021"
 
 [dependencies]
 sea-orm-migration = "0.12"
+async-trait = "0.1"
+
+[dependencies.entity]
+path = "../entity"

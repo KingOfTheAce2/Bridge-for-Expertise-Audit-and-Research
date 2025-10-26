@@ -2,7 +2,7 @@ use tauri::State;
 use sea_orm::{EntityTrait, ColumnTrait, QueryFilter, Set, ActiveModelTrait};
 use serde::{Deserialize, Serialize};
 use crate::database::DatabaseManager;
-use crate::entity::settings;
+use entity::settings;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ThemeSettings {
