@@ -1,6 +1,6 @@
 // src/components/ReviewModal.tsx
 import React, { useState } from 'react';
-import AIBadge from './AIBadge';
+import { AIBadge } from './AIBadge';
 
 interface ReviewModalProps {
   title: string;
