@@ -10,6 +10,103 @@ This roadmap provides a complete development path from initial project setup thr
 
 ---
 
+## 🎯 MVP Definition: What's Required for Launch?
+
+**Minimum Viable Product (MVP) = v0.3.0**
+
+The MVP includes **Phase 0-2** (Foundation + GDPR + Basic LLM + AI Act compliance). An AI assistant must have working AI, but doesn't need advanced features.
+
+### MVP Requirements Breakdown:
+
+| Phase | Version | Timeline | Required for MVP? | What It Delivers |
+|-------|---------|----------|-------------------|------------------|
+| **Phase 0** | v0.1.0 | ✅ Complete | ✅ **YES** | Foundation - app runs, database works |
+| **Phase 1** | v0.2.0 | 8-10 weeks | ✅ **YES** | GDPR + Auto-updater + **Basic LLM (Ollama)** |
+| **Phase 2** | v0.3.0 | 4-6 weeks | ✅ **YES** | AI Act compliance (Article 52) |
+| Phase 3 | v0.4.0 | 8-12 weeks | ❌ **NO** | Advanced AI (Candle, GPU, quantization) |
+| Phase 4 | v0.5.0 | 6-8 weeks | ❌ **NO** | Advanced PII detection (NER, Presidio) |
+
+**Total Time to MVP**: ~5-6 months from Phase 0 start
+
+### Why This Approach Works:
+
+1. **Basic AI in Phase 1**: Ollama integration is simple, stable, and lets users download/use models immediately
+2. **Legal Compliance**: GDPR/AI Act required for EU launch - build this BEFORE complex AI
+3. **Iterate on Advanced AI**: Phase 3 adds Candle, GPU, quantization - these are optimizations, not requirements
+4. **Trust Building**: Lawyers trust compliance > performance - show you take privacy seriously
+5. **Avoid Rework**: Building compliance AFTER complex AI = massive refactoring
+
+### What "MVP" Includes:
+
+**✅ Core Features (MVP Required):**
+- App runs stably on Windows/Mac/Linux
+- Database, cases, conversations work
+- **Auto-updater** - privacy-respecting update system (moved to Phase 1)
+- **Basic LLM Integration** - Ollama support, download models, chat interface (Phase 1)
+- GDPR compliance: encryption, audit logs, right to erasure (Phase 1)
+- AI Act compliance: transparency, human review, output labeling (Phase 2)
+- Regex-based PII detection (basic, Phase 1)
+
+**❌ Advanced Features (Post-MVP):**
+- Advanced local AI: Candle integration, GPU acceleration, quantization (Phase 3)
+- Advanced PII: NER, Presidio, >98% detection (Phase 4)
+- RAG/legal research: vector DB, semantic search (Phase 7)
+- Multi-modal, agents, Word add-in (Phase 6+)
+
+### Basic vs Advanced LLM:
+
+| Feature | Basic LLM (Phase 1 - MVP) | Advanced LLM (Phase 3 - Post-MVP) |
+|---------|--------------------------|----------------------------------|
+| **Integration** | Ollama API | Candle (native Rust) |
+| **Model Management** | Ollama CLI downloads | Built-in downloader + UI |
+| **Inference** | Ollama handles it | Full control, optimization |
+| **GPU Support** | Ollama manages | CUDA/Metal/ROCm integration |
+| **Quantization** | Ollama auto-quantizes | Manual GGUF, 4/8-bit control |
+| **Effort** | Low (1-2 weeks) | Very High (8-12 weeks) |
+| **User Experience** | "Install Ollama first" | Everything built-in |
+
+**Conclusion**: MVP uses Ollama (simple, proven), then Phase 3 adds Candle (advanced, optimized).
+
+### Post-MVP Roadmap:
+
+- **v0.2.0** (Phase 1): GDPR + Basic LLM (Ollama) - **CAN LAUNCH** (with Ollama dependency)
+- **v0.3.0** (Phase 2): AI Act compliant - **FULL MVP**
+- **v0.4.0** (Phase 3): Candle integration, no Ollama dependency, GPU acceleration
+- **v0.5.0** (Phase 4): Advanced PII detection, >98% accuracy
+- **v1.0.0** (Phase 7-8): RAG, legal research, fortress security - **PRODUCTION READY**
+
+---
+
+## 🔄 Auto-Updater Strategy: Privacy-First Updates
+
+**Question**: "Does an updater conflict with local-first, no-telemetry philosophy?"
+
+**Answer**: **NO! Modern updaters respect privacy perfectly.**
+
+### How Privacy-Respecting Updates Work:
+
+1. **What's Sent**: Only version number to GitHub API (e.g., "is v0.0.20 latest?")
+2. **What's NOT Sent**: No user ID, no system info, no usage data, no analytics
+3. **Anonymous Download**: Update files from GitHub Releases (no tracking)
+4. **User Control**: Can disable auto-check or require manual approval
+5. **Secure**: Updates cryptographically signed to prevent tampering
+
+### Examples of Local-First Apps with Updaters:
+- **VS Code**: Privacy-focused IDE, has auto-updater
+- **Obsidian**: Local-first notes, has updater
+- **Signal Desktop**: Privacy messenger, has updater
+- **Brave Browser**: Privacy browser, has updater
+
+### Implementation: See **Step 0.6a** below
+- Tauri built-in updater (GitHub-based)
+- No telemetry, no analytics, no tracking
+- Update checks can be disabled in Settings
+- All operations local after download
+
+**Conclusion**: Updaters are ESSENTIAL for security patches and bug fixes. The implementation respects privacy completely.
+
+---
+
 ## Completed Milestones ✅
 
 | Step | Feature | Status |
@@ -970,6 +1067,299 @@ This application draws inspiration from leading local LLM UI clients:
 
 ---
 
+### Step 0.6a: Auto-Updater System (Privacy-Respecting)
+**⚠️ NOTE: This step has been MOVED to Phase 1 (Step 1.0) - see lines ~2054-2068**
+
+**This section remains here for reference during Phase 0 implementation.**
+
+---
+
+**Priority**: High | **Effort**: Low | **Risk**: Low
+
+**What**: Implement a privacy-respecting automatic updater that allows pushing updates to clients without compromising the local-first, no-telemetry philosophy.
+
+**Why This Is Compatible with Privacy-First Design**:
+- **No User Data Sent**: Only checks GitHub API for version numbers - no analytics, no user identification
+- **Anonymous Downloads**: Updates downloaded from GitHub Releases without tracking
+- **User Control**: Users can disable auto-update checks or require manual approval
+- **Local Installation**: All updates applied locally, no server-side processing
+- **Industry Standard**: Used by privacy-focused apps like VS Code, Signal Desktop, and Obsidian
+
+**Implementation**:
+
+1. **Enable Tauri Updater**:
+   ```toml
+   # src-tauri/Cargo.toml
+   [dependencies]
+   tauri = { version = "2.0", features = ["updater"] }
+   ```
+
+   ```json
+   // src-tauri/tauri.conf.json
+   {
+     "bundle": {
+       "updater": {
+         "active": true,
+         "endpoints": [
+           "https://github.com/KingOfTheAce2/Bridge-for-Expertise-Audit-and-Research/releases/latest/download/latest.json"
+         ],
+         "dialog": true,
+         "pubkey": "YOUR_PUBLIC_KEY_HERE"
+       }
+     }
+   }
+   ```
+
+2. **Generate Signing Keys** (for security):
+   ```bash
+   # Generate keypair for signing updates (one-time setup)
+   npm run tauri signer generate -- -w ~/.tauri/bear-llm.key
+
+   # This generates:
+   # - Private key: Keep secret, use in CI/CD
+   # - Public key: Add to tauri.conf.json
+   ```
+
+3. **Update Check Command**:
+   ```rust
+   // src-tauri/src/commands/updater.rs
+   use tauri::updater::UpdateResponse;
+   use tauri::Manager;
+
+   #[tauri::command]
+   pub async fn check_for_updates(app: tauri::AppHandle) -> Result<UpdateResponse, String> {
+       // This only sends current version to GitHub API
+       // No user data, no telemetry, no tracking
+       match app.updater().check().await {
+           Ok(update) => Ok(update),
+           Err(e) => Err(format!("Failed to check for updates: {}", e)),
+       }
+   }
+
+   #[tauri::command]
+   pub async fn install_update(app: tauri::AppHandle) -> Result<(), String> {
+       match app.updater().check().await {
+           Ok(update) => {
+               if update.is_update_available() {
+                   update.download_and_install().await
+                       .map_err(|e| format!("Failed to install update: {}", e))?;
+               }
+               Ok(())
+           }
+           Err(e) => Err(format!("Update check failed: {}", e)),
+       }
+   }
+   ```
+
+4. **Update UI Component**:
+   ```typescript
+   // src/components/UpdateNotification.tsx
+   import React, { useEffect, useState } from 'react';
+   import { invoke } from '@tauri-apps/api/tauri';
+   import { useTranslation } from 'react-i18next';
+
+   interface UpdateInfo {
+       available: boolean;
+       current_version: string;
+       latest_version: string;
+       date: string;
+       body: string;
+   }
+
+   export const UpdateNotification: React.FC = () => {
+       const { t } = useTranslation();
+       const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+       const [checking, setChecking] = useState(false);
+       const [installing, setInstalling] = useState(false);
+
+       const checkForUpdates = async () => {
+           try {
+               setChecking(true);
+               const info = await invoke<UpdateInfo>('check_for_updates');
+               if (info.available) {
+                   setUpdateInfo(info);
+               }
+           } catch (error) {
+               console.error('Update check failed:', error);
+           } finally {
+               setChecking(false);
+           }
+       };
+
+       const installUpdate = async () => {
+           try {
+               setInstalling(true);
+               await invoke('install_update');
+               // App will restart after update
+           } catch (error) {
+               console.error('Update installation failed:', error);
+               setInstalling(false);
+           }
+       };
+
+       useEffect(() => {
+           // Check for updates on app start (optional, user-controllable)
+           const autoCheck = localStorage.getItem('autoCheckUpdates') !== 'false';
+           if (autoCheck) {
+               checkForUpdates();
+           }
+       }, []);
+
+       if (!updateInfo) return null;
+
+       return (
+           <div className="fixed top-4 right-4 bg-blue-500 text-white p-4 rounded-lg shadow-lg max-w-md">
+               <h3 className="font-bold mb-2">
+                   {t('updater.newVersionAvailable')}
+               </h3>
+               <p className="text-sm mb-2">
+                   {t('updater.version')}: {updateInfo.latest_version}
+               </p>
+               <p className="text-xs mb-4 opacity-90">
+                   {updateInfo.body}
+               </p>
+               <div className="flex gap-2">
+                   <button
+                       onClick={installUpdate}
+                       disabled={installing}
+                       className="px-4 py-2 bg-white text-blue-500 rounded hover:bg-gray-100"
+                   >
+                       {installing ? t('updater.installing') : t('updater.install')}
+                   </button>
+                   <button
+                       onClick={() => setUpdateInfo(null)}
+                       className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+                   >
+                       {t('updater.later')}
+                   </button>
+               </div>
+           </div>
+       );
+   };
+   ```
+
+5. **Add Update Settings**:
+   ```typescript
+   // In Settings page
+   <div className="setting-group">
+       <h3>{t('settings.updates.title')}</h3>
+       <label>
+           <input
+               type="checkbox"
+               checked={autoCheckUpdates}
+               onChange={(e) => {
+                   setAutoCheckUpdates(e.target.checked);
+                   localStorage.setItem('autoCheckUpdates', String(e.target.checked));
+               }}
+           />
+           {t('settings.updates.autoCheck')}
+       </label>
+       <button onClick={checkForUpdates}>
+           {t('settings.updates.checkNow')}
+       </button>
+   </div>
+   ```
+
+6. **i18n Translations**:
+   ```json
+   // src/i18n/locales/en-GB.json
+   {
+     "updater": {
+       "newVersionAvailable": "New Version Available",
+       "version": "Version",
+       "install": "Install Update",
+       "installing": "Installing...",
+       "later": "Remind Me Later",
+       "checkNow": "Check for Updates",
+       "upToDate": "You're up to date!"
+     },
+     "settings": {
+       "updates": {
+         "title": "Updates",
+         "autoCheck": "Automatically check for updates",
+         "checkNow": "Check for Updates Now",
+         "description": "Updates are downloaded from GitHub. No user data is sent."
+       }
+     }
+   }
+   ```
+
+7. **CI/CD Integration** (GitHub Actions):
+   ```yaml
+   # .github/workflows/release.yml
+   name: Release Build
+   on:
+     push:
+       tags:
+         - 'v*'
+
+   jobs:
+     release:
+       strategy:
+         matrix:
+           platform: [windows-latest, ubuntu-latest, macos-latest]
+       runs-on: ${{ matrix.platform }}
+       steps:
+         - uses: actions/checkout@v4
+         - uses: actions/setup-node@v4
+           with:
+             node-version: 20
+         - uses: dtolnay/rust-toolchain@stable
+
+         - name: Install dependencies
+           run: npm ci
+
+         - name: Build and sign
+           env:
+             TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+             TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+           run: npm run tauri build
+
+         - name: Upload Release Assets
+           uses: softprops/action-gh-release@v1
+           with:
+             files: |
+               src-tauri/target/release/bundle/**/*.msi
+               src-tauri/target/release/bundle/**/*.dmg
+               src-tauri/target/release/bundle/**/*.AppImage
+               src-tauri/target/release/bundle/**/*.deb
+   ```
+
+**Privacy Guarantees**:
+- ✅ **No Analytics**: Zero tracking of who checks for updates
+- ✅ **No User Data**: Only version comparison, no system info sent
+- ✅ **No Phoning Home**: Updates come from GitHub, not custom servers
+- ✅ **User Control**: Can be completely disabled
+- ✅ **Transparent**: Open source code shows exactly what data is sent (version number only)
+- ✅ **Secure**: Updates cryptographically signed to prevent tampering
+- ✅ **Local First**: Update files downloaded and installed locally
+
+**What Data Is Sent?**:
+```
+Request to GitHub API:
+GET https://api.github.com/repos/KingOfTheAce2/Bridge-for-Expertise-Audit-and-Research/releases/latest
+
+No headers identifying the user, no cookies, no tracking
+GitHub sees: IP address (standard for any HTTP request), no other data
+Response: JSON with version number, download URL, changelog
+```
+
+**Success Criteria**:
+- Updater checks GitHub Releases without errors
+- Update notification appears when new version available
+- Update can be installed successfully
+- Settings allow disabling auto-checks
+- No user data sent (verify in network logs)
+- Works on all target platforms (Windows, macOS, Linux)
+
+**Documentation**:
+- Add "Privacy: What Data We Send" section to README
+- Explain updater in terms of service / privacy policy
+- Document how to disable updater
+- Show network traffic examples
+
+---
+
 ### Step 0.7: Testing Setup
 **Priority**: Medium | **Effort**: Low | **Risk**: Low
 
@@ -1649,10 +2039,115 @@ src-tauri/
 
 ---
 
-## Phase 1: GDPR Compliance (Priority: CRITICAL)
-**Legal Foundation - Articles 5, 12-17, 25, 30, 32**
+## Phase 1: GDPR Compliance + Auto-Updater + Basic LLM (Priority: CRITICAL)
+**Legal Foundation + Infrastructure + AI Integration**
 
-### Step 1: Data Minimization (Art. 5(1)(c))
+**Objective**: Build GDPR-compliant infrastructure while integrating basic LLM capabilities (Ollama). This phase delivers a working AI assistant that can download and use models while respecting privacy laws.
+
+**Key Deliverables**:
+- ✅ GDPR Articles 5, 12-17, 25, 30, 32 compliance
+- ✅ Privacy-respecting auto-updater system (moved from Step 0.6a)
+- ✅ Basic LLM integration (Ollama API)
+- ✅ Model download and management
+- ✅ Functional chat interface with AI responses
+
+**Timeline**: 8-10 weeks
+
+**Note**: Auto-updater implementation details are in Step 0.6a (lines ~1070-1356). Basic LLM integration added as new Step 1.1 below.
+
+---
+
+### Step 1.0: Auto-Updater System - MOVED TO PHASE 1
+**Priority**: High | **Effort**: Low | **Risk**: Low
+
+**Implementation**: See **Step 0.6a** above (lines ~1070-1356) for complete implementation details including:
+- Tauri updater configuration
+- Rust update check/install commands
+- React UI notification component
+- Settings integration
+- CI/CD GitHub Actions workflow
+- Cryptographic signing setup
+- Privacy guarantees and documentation
+
+**Why in Phase 1**: Auto-updater is infrastructure needed before MVP launch. Allows pushing security patches and bug fixes while maintaining privacy-first principles.
+
+**Success Criteria**: See Step 0.6a above.
+
+---
+
+### Step 1.1: Basic LLM Integration - Ollama API
+**Priority**: Critical | **Effort**: Medium (1-2 weeks) | **Risk**: Medium
+
+**What**: Integrate with Ollama for local LLM inference. Users can download models via Ollama and chat with them through BEAR LLM. This is the "Basic AI" that makes the MVP actually functional.
+
+**Why Ollama for MVP**:
+| Factor | Ollama (Phase 1) | Candle (Phase 3) |
+|--------|------------------|------------------|
+| **Development Time** | 1-2 weeks | 8-12 weeks |
+| **Complexity** | Low (REST API) | Very High (Rust ML) |
+| **Model Management** | Ollama handles it | Build ourselves |
+| **GPU Support** | Ollama manages | Manual CUDA/Metal |
+| **User Setup** | Install Ollama | Built-in |
+| **MVP Ready?** | ✅ YES | ❌ Overkill for MVP |
+
+**Implementation Summary**:
+1. **Ollama Client Service** (`src-tauri/src/services/ollama.rs`):
+   - Check if Ollama is running (HTTP GET to localhost:11434)
+   - List available models
+   - Send chat messages
+   - Handle streaming responses
+
+2. **Tauri Commands** (`src-tauri/src/commands/llm.rs`):
+   - `check_ollama_status() -> bool`
+   - `get_available_models() -> Vec<String>`
+   - `send_chat_message(model, messages) -> String`
+
+3. **Frontend Service** (`src/services/llm.ts`):
+   - TypeScript wrapper for Tauri commands
+   - Type-safe message interface
+
+4. **Chat UI** (`src/components/ChatInterface.tsx`):
+   - Model selector dropdown
+   - Message history display
+   - Input field with send button
+   - "Ollama not installed" warning state
+   - Loading indicators
+
+**Dependencies**:
+```toml
+# src-tauri/Cargo.toml
+[dependencies]
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+```
+
+**User Workflow**:
+1. Install BEAR LLM → App detects no Ollama
+2. Install Ollama → `curl https://ollama.ai/install.sh | sh`
+3. Download model → `ollama pull llama2`
+4. Return to BEAR LLM → Model appears in dropdown
+5. Start chatting → Fully local AI responses
+
+**Success Criteria**:
+- ✅ Detects Ollama running/not running
+- ✅ Lists all models from Ollama
+- ✅ Sends messages and displays responses
+- ✅ Conversation history persists in database
+- ✅ Model switching works mid-conversation
+- ✅ Graceful error handling
+- ✅ 100% local processing (verify with network monitor)
+
+**What This Delivers**: A working AI assistant! Users can chat with local LLMs through a clean interface. This is the core functionality needed for MVP.
+
+**Migration to Candle (Phase 3)**:
+- Phase 1: Ollama required, simple integration
+- Phase 3: Add Candle, make Ollama optional
+- Phase 4+: Candle default, Ollama fallback for compatibility
+
+---
+
+### Step 1.2: Data Minimization (Art. 5(1)(c))
 **Priority**: Critical | **Effort**: Medium | **Legal Risk**: High
 
 **What**: Store only files or chats the user explicitly creates or imports.
@@ -2351,12 +2846,24 @@ Consult qualified legal professionals for specific legal matters.
 
 ---
 
-## Phase 3: Local AI Infrastructure (Priority: HIGH)
+## Phase 3: Advanced Local AI Infrastructure (Priority: HIGH - Post-MVP)
 
-### Step 20: Local Model Support with Candle and Hugging Face (Art. 52)
-**Priority**: Critical | **Effort**: Very High | **Legal Risk**: Medium
+**⚠️ NOTE: This phase is POST-MVP. MVP (Phase 1-2) already includes basic LLM via Ollama.**
 
-**What**: Run all inference offline with Candle + Hugging Face. Allow manual model downloads.
+**Objective**: Replace Ollama dependency with native Rust inference engine (Candle). Adds GPU optimization, quantization control, and eliminates external dependencies. This phase is about performance and polish, not core functionality.
+
+**Why After MVP**:
+- Phase 1 already delivers working AI (Ollama integration)
+- Candle adds 8-12 weeks of development time
+- MVP users can start using the product while this is built
+- Advanced features benefit from real user feedback
+
+---
+
+### Step 20: Advanced Model Support with Candle and Hugging Face
+**Priority**: High | **Effort**: Very High | **Legal Risk**: Low
+
+**What**: Replace Ollama with native Rust inference using Candle. Gain full control over model loading, quantization, GPU acceleration. Remove Ollama as a dependency.
 
 **Implementation**:
 - Integrate Candle inference engine (Rust-native)
@@ -3862,15 +4369,17 @@ The goal is not to replace lawyers or just make law firms more profitable. The g
 - **Deliverable**: Working wireframe with case organization and compliance patterns
 - **Success Metric**: App works case-by-case, review workflow functional, compliance UI ready
 
-### Phase 1 (Critical - Q1 2025)
-**Focus**: Legal Compliance - GDPR
+### Phase 1 (Critical - Q1 2025) - **MVP FOUNDATION**
+**Focus**: GDPR Compliance + Auto-Updater + Basic LLM Integration
 **Timeline**: 8-10 weeks
-- Steps 1-12: Complete GDPR compliance
+- **Step 1.0**: Auto-updater system (privacy-respecting)
+- **Step 1.1**: Basic LLM integration (Ollama API)
+- Steps 1.2-1.12: Complete GDPR compliance
   - Data minimization
   - Purpose limitation
   - Transparency & notice
   - Encryption at rest
-  - PII Layer 1 (regex)
+  - PII Layer 1 (regex-based)
   - Access control
   - Data deletion (right to erasure)
   - Data correction
@@ -3878,13 +4387,16 @@ The goal is not to replace lawyers or just make law firms more profitable. The g
   - Audit logging
   - Security by design
   - Privacy notice accessibility
-- **Deliverable**: GDPR-compliant application
-- **Success Metric**: Pass third-party GDPR compliance audit
+- **Deliverable**: GDPR-compliant application + **Working AI chat** (requires Ollama)
+- **Success Metric**:
+  - Pass third-party GDPR compliance audit
+  - Users can chat with local LLMs
+  - Auto-updater pushes updates without compromising privacy
 
-### Phase 2 (Critical - Q1-Q2 2025)
-**Focus**: Legal Compliance - AI Act
+### Phase 2 (Critical - Q1-Q2 2025) - **MVP COMPLETE**
+**Focus**: AI Act Compliance
 **Timeline**: 4-6 weeks
-- Steps 13-19: Complete AI Act compliance
+- Steps 2.1-2.7: Complete AI Act compliance
   - AI transparency labels
   - AI use explanation
   - Output provenance
@@ -3892,21 +4404,27 @@ The goal is not to replace lawyers or just make law firms more profitable. The g
   - Label AI-modified data
   - Local model default
   - Low-risk by design classification
-- **Deliverable**: Fully compliant MVP (GDPR + AI Act)
+- **Deliverable**: Fully compliant MVP (GDPR + AI Act + Working AI)
 - **Success Metric**: Legal review confirms compliance with EU AI Act Article 52
+- **Launch Ready**: Can launch to users with Ollama dependency
 
-### Phase 3 (High - Q2 2025)
-**Focus**: Local AI Infrastructure
+### Phase 3 (High - Q2 2025) - **POST-MVP OPTIMIZATION**
+**Focus**: Advanced Local AI Infrastructure (Remove Ollama Dependency)
 **Timeline**: 8-12 weeks
-- Step 20: Local model support (Candle + Hugging Face)
-  - Candle inference engine integration
+- Step 3.1: Advanced model support (Candle + Hugging Face)
+  - Candle inference engine integration (native Rust)
+  - Replace Ollama dependency
   - Support for Mistral, Llama, Phi-2 models
-  - Model quantization (4-bit, 8-bit)
+  - Model quantization (4-bit, 8-bit) with manual control
   - GPU acceleration (CUDA, Metal, ROCm)
-  - CPU fallback
-  - Model manager UI
-- **Deliverable**: Working local AI with inference
-- **Success Metric**: 7B model running at >10 tokens/sec on GPU, >2 tokens/sec on CPU
+  - CPU fallback optimization
+  - Built-in model manager UI
+  - Model download from Hugging Face
+- **Deliverable**: Advanced local AI with no external dependencies
+- **Success Metric**:
+  - 7B model running at >20 tokens/sec on GPU, >5 tokens/sec on CPU
+  - Ollama becomes optional fallback
+  - Built-in model downloads work
 
 ### Phase 4 (High - Q2-Q3 2025)
 **Focus**: Advanced PII Protection
@@ -3997,19 +4515,33 @@ The goal is not to replace lawyers or just make law firms more profitable. The g
 
 ## Complete Development Timeline
 
-**Total Time to MVP (Phase 0-2)**: ~4-5 months
+**Total Time to MVP (Phase 0-2)**: ~5-6 months
 **Total Time to Full Features (Phase 0-8)**: ~18-24 months
 
 **Milestones**:
-- ✅ **v0.0.20** (Current): Wireframe + basic features
-- 🎯 **v0.1.0** (Phase 0 complete): Working foundation
-- 🎯 **v0.2.0** (Phase 1 complete): GDPR compliant
-- 🎯 **v0.3.0** (Phase 2 complete): AI Act compliant - **MVP READY**
-- 🎯 **v0.4.0** (Phase 3 complete): Local AI working
+- ✅ **v0.0.20** (Current): Wireframe + basic features (Phase 0 complete)
+- 🎯 **v0.1.0** (Phase 0 complete): Working foundation - ✅ ALREADY AT THIS MILESTONE
+- 🎯 **v0.2.0** (Phase 1 complete): GDPR + Auto-updater + **Basic LLM (Ollama)** - **CAN LAUNCH**
+- 🎯 **v0.3.0** (Phase 2 complete): AI Act compliant - **FULL MVP READY**
+- 🎯 **v0.4.0** (Phase 3 complete): Advanced AI (Candle, no Ollama dependency)
 - 🎯 **v0.5.0** (Phase 4 complete): Advanced PII protection
 - 🎯 **v0.6.0** (Phase 5-6 complete): Strategic path implemented
-- 🎯 **v1.0.0** (Phase 7-8 complete): **PRODUCTION READY**
+- 🎯 **v1.0.0** (Phase 7-8 complete): **PRODUCTION READY** (RAG, security hardening)
 - 🎯 **v2.0.0** (Phase 9+): Social impact features
+
+**Key Changes from Original Plan**:
+- **Phase 1 now includes Basic LLM**: Ollama integration added (1-2 weeks extra)
+- **Auto-updater moved to Phase 1**: Infrastructure needed before MVP launch
+- **Phase 3 is now post-MVP**: Candle integration is optimization, not requirement
+- **MVP timeline**: Slightly longer (5-6 months vs 4-5) but delivers working AI
+
+**What Each Version Delivers**:
+| Version | What Users Can Do | Technical Status |
+|---------|------------------|------------------|
+| v0.2.0 | Chat with local LLMs, GDPR compliant | Requires Ollama install |
+| v0.3.0 | + AI Act compliance, full MVP | Ready for EU market |
+| v0.4.0 | + No Ollama dependency, faster GPU | Built-in everything |
+| v1.0.0 | + Legal research, RAG, fortress security | Production ready |
 
 ---
 
