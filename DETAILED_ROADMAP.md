@@ -10,6 +10,83 @@ This roadmap provides a complete development path from initial project setup thr
 
 ---
 
+## 🎯 MVP Definition: What's Required for Launch?
+
+**Minimum Viable Product (MVP) = v0.3.0**
+
+The MVP includes **Phase 0-2 only** (GDPR + AI Act compliance). This may seem counterintuitive - an AI assistant without full AI capabilities - but it's strategically correct:
+
+### Why Legal Compliance is the MVP:
+
+| Phase | Version | Timeline | Required for MVP? | Rationale |
+|-------|---------|----------|-------------------|-----------|
+| **Phase 0** | v0.1.0 | ✅ Complete | ✅ **YES** | Foundation - app must exist and run |
+| **Phase 1** | v0.2.0 | 6-8 weeks | ✅ **YES** | GDPR compliance legally required in EU |
+| **Phase 2** | v0.3.0 | 4-6 weeks | ✅ **YES** | AI Act compliance (Article 52) legally required |
+| Phase 3 | v0.4.0 | 8-12 weeks | ❌ **NO** | Full AI can come after compliance framework |
+| Phase 4 | v0.5.0 | 6-8 weeks | ❌ **NO** | Advanced PII is post-launch enhancement |
+
+**Total Time to MVP**: ~4-5 months from Phase 0 start
+
+### Why This Approach Works:
+
+1. **Legal First**: You CANNOT launch in EU without GDPR/AI Act compliance - fix this first
+2. **Basic AI Sufficient**: MVP can use simple LLM integration while compliance framework is rock-solid
+3. **Iterate on AI**: Once compliant, you can safely add Candle, Ollama, RAG, agents, etc.
+4. **Trust Building**: Lawyers trust compliance > features - show you take privacy seriously
+5. **Avoid Rework**: Building compliance AFTER complex AI = massive refactoring
+
+### What "MVP" Means:
+
+- ✅ App runs stably on Windows/Mac/Linux
+- ✅ Database, cases, conversations work
+- ✅ GDPR compliance: encryption, audit logs, right to erasure
+- ✅ AI Act compliance: transparency, human review, output labeling
+- ✅ **Privacy-respecting auto-updater** (Step 0.6a) - push bug fixes without compromising privacy
+- ✅ Basic chat interface (can use OpenAI API, Ollama, or simple responses)
+- ❌ Advanced local models (Candle, quantization) - Phase 3
+- ❌ Advanced PII detection (NER, Presidio) - Phase 4
+- ❌ RAG/legal research - Phase 7
+- ❌ Multi-modal, agents, Word add-in - Phase 6+
+
+### Post-MVP Roadmap:
+
+- **v0.4.0** (Phase 3): Candle integration, local 7B models, GPU acceleration
+- **v0.5.0** (Phase 4): NER-based PII detection, >98% detection rate
+- **v1.0.0** (Phase 7-8): RAG, legal research, fortress security - **PRODUCTION READY**
+
+---
+
+## 🔄 Auto-Updater Strategy: Privacy-First Updates
+
+**Question**: "Does an updater conflict with local-first, no-telemetry philosophy?"
+
+**Answer**: **NO! Modern updaters respect privacy perfectly.**
+
+### How Privacy-Respecting Updates Work:
+
+1. **What's Sent**: Only version number to GitHub API (e.g., "is v0.0.20 latest?")
+2. **What's NOT Sent**: No user ID, no system info, no usage data, no analytics
+3. **Anonymous Download**: Update files from GitHub Releases (no tracking)
+4. **User Control**: Can disable auto-check or require manual approval
+5. **Secure**: Updates cryptographically signed to prevent tampering
+
+### Examples of Local-First Apps with Updaters:
+- **VS Code**: Privacy-focused IDE, has auto-updater
+- **Obsidian**: Local-first notes, has updater
+- **Signal Desktop**: Privacy messenger, has updater
+- **Brave Browser**: Privacy browser, has updater
+
+### Implementation: See **Step 0.6a** below
+- Tauri built-in updater (GitHub-based)
+- No telemetry, no analytics, no tracking
+- Update checks can be disabled in Settings
+- All operations local after download
+
+**Conclusion**: Updaters are ESSENTIAL for security patches and bug fixes. The implementation respects privacy completely.
+
+---
+
 ## Completed Milestones ✅
 
 | Step | Feature | Status |
@@ -967,6 +1044,293 @@ This application draws inspiration from leading local LLM UI clients:
 - Installer packages generated for target platforms
 - Installed app runs correctly
 - App data stored in correct location
+
+---
+
+### Step 0.6a: Auto-Updater System (Privacy-Respecting)
+**Priority**: High | **Effort**: Low | **Risk**: Low
+
+**What**: Implement a privacy-respecting automatic updater that allows pushing updates to clients without compromising the local-first, no-telemetry philosophy.
+
+**Why This Is Compatible with Privacy-First Design**:
+- **No User Data Sent**: Only checks GitHub API for version numbers - no analytics, no user identification
+- **Anonymous Downloads**: Updates downloaded from GitHub Releases without tracking
+- **User Control**: Users can disable auto-update checks or require manual approval
+- **Local Installation**: All updates applied locally, no server-side processing
+- **Industry Standard**: Used by privacy-focused apps like VS Code, Signal Desktop, and Obsidian
+
+**Implementation**:
+
+1. **Enable Tauri Updater**:
+   ```toml
+   # src-tauri/Cargo.toml
+   [dependencies]
+   tauri = { version = "2.0", features = ["updater"] }
+   ```
+
+   ```json
+   // src-tauri/tauri.conf.json
+   {
+     "bundle": {
+       "updater": {
+         "active": true,
+         "endpoints": [
+           "https://github.com/KingOfTheAce2/Bridge-for-Expertise-Audit-and-Research/releases/latest/download/latest.json"
+         ],
+         "dialog": true,
+         "pubkey": "YOUR_PUBLIC_KEY_HERE"
+       }
+     }
+   }
+   ```
+
+2. **Generate Signing Keys** (for security):
+   ```bash
+   # Generate keypair for signing updates (one-time setup)
+   npm run tauri signer generate -- -w ~/.tauri/bear-llm.key
+
+   # This generates:
+   # - Private key: Keep secret, use in CI/CD
+   # - Public key: Add to tauri.conf.json
+   ```
+
+3. **Update Check Command**:
+   ```rust
+   // src-tauri/src/commands/updater.rs
+   use tauri::updater::UpdateResponse;
+   use tauri::Manager;
+
+   #[tauri::command]
+   pub async fn check_for_updates(app: tauri::AppHandle) -> Result<UpdateResponse, String> {
+       // This only sends current version to GitHub API
+       // No user data, no telemetry, no tracking
+       match app.updater().check().await {
+           Ok(update) => Ok(update),
+           Err(e) => Err(format!("Failed to check for updates: {}", e)),
+       }
+   }
+
+   #[tauri::command]
+   pub async fn install_update(app: tauri::AppHandle) -> Result<(), String> {
+       match app.updater().check().await {
+           Ok(update) => {
+               if update.is_update_available() {
+                   update.download_and_install().await
+                       .map_err(|e| format!("Failed to install update: {}", e))?;
+               }
+               Ok(())
+           }
+           Err(e) => Err(format!("Update check failed: {}", e)),
+       }
+   }
+   ```
+
+4. **Update UI Component**:
+   ```typescript
+   // src/components/UpdateNotification.tsx
+   import React, { useEffect, useState } from 'react';
+   import { invoke } from '@tauri-apps/api/tauri';
+   import { useTranslation } from 'react-i18next';
+
+   interface UpdateInfo {
+       available: boolean;
+       current_version: string;
+       latest_version: string;
+       date: string;
+       body: string;
+   }
+
+   export const UpdateNotification: React.FC = () => {
+       const { t } = useTranslation();
+       const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+       const [checking, setChecking] = useState(false);
+       const [installing, setInstalling] = useState(false);
+
+       const checkForUpdates = async () => {
+           try {
+               setChecking(true);
+               const info = await invoke<UpdateInfo>('check_for_updates');
+               if (info.available) {
+                   setUpdateInfo(info);
+               }
+           } catch (error) {
+               console.error('Update check failed:', error);
+           } finally {
+               setChecking(false);
+           }
+       };
+
+       const installUpdate = async () => {
+           try {
+               setInstalling(true);
+               await invoke('install_update');
+               // App will restart after update
+           } catch (error) {
+               console.error('Update installation failed:', error);
+               setInstalling(false);
+           }
+       };
+
+       useEffect(() => {
+           // Check for updates on app start (optional, user-controllable)
+           const autoCheck = localStorage.getItem('autoCheckUpdates') !== 'false';
+           if (autoCheck) {
+               checkForUpdates();
+           }
+       }, []);
+
+       if (!updateInfo) return null;
+
+       return (
+           <div className="fixed top-4 right-4 bg-blue-500 text-white p-4 rounded-lg shadow-lg max-w-md">
+               <h3 className="font-bold mb-2">
+                   {t('updater.newVersionAvailable')}
+               </h3>
+               <p className="text-sm mb-2">
+                   {t('updater.version')}: {updateInfo.latest_version}
+               </p>
+               <p className="text-xs mb-4 opacity-90">
+                   {updateInfo.body}
+               </p>
+               <div className="flex gap-2">
+                   <button
+                       onClick={installUpdate}
+                       disabled={installing}
+                       className="px-4 py-2 bg-white text-blue-500 rounded hover:bg-gray-100"
+                   >
+                       {installing ? t('updater.installing') : t('updater.install')}
+                   </button>
+                   <button
+                       onClick={() => setUpdateInfo(null)}
+                       className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+                   >
+                       {t('updater.later')}
+                   </button>
+               </div>
+           </div>
+       );
+   };
+   ```
+
+5. **Add Update Settings**:
+   ```typescript
+   // In Settings page
+   <div className="setting-group">
+       <h3>{t('settings.updates.title')}</h3>
+       <label>
+           <input
+               type="checkbox"
+               checked={autoCheckUpdates}
+               onChange={(e) => {
+                   setAutoCheckUpdates(e.target.checked);
+                   localStorage.setItem('autoCheckUpdates', String(e.target.checked));
+               }}
+           />
+           {t('settings.updates.autoCheck')}
+       </label>
+       <button onClick={checkForUpdates}>
+           {t('settings.updates.checkNow')}
+       </button>
+   </div>
+   ```
+
+6. **i18n Translations**:
+   ```json
+   // src/i18n/locales/en-GB.json
+   {
+     "updater": {
+       "newVersionAvailable": "New Version Available",
+       "version": "Version",
+       "install": "Install Update",
+       "installing": "Installing...",
+       "later": "Remind Me Later",
+       "checkNow": "Check for Updates",
+       "upToDate": "You're up to date!"
+     },
+     "settings": {
+       "updates": {
+         "title": "Updates",
+         "autoCheck": "Automatically check for updates",
+         "checkNow": "Check for Updates Now",
+         "description": "Updates are downloaded from GitHub. No user data is sent."
+       }
+     }
+   }
+   ```
+
+7. **CI/CD Integration** (GitHub Actions):
+   ```yaml
+   # .github/workflows/release.yml
+   name: Release Build
+   on:
+     push:
+       tags:
+         - 'v*'
+
+   jobs:
+     release:
+       strategy:
+         matrix:
+           platform: [windows-latest, ubuntu-latest, macos-latest]
+       runs-on: ${{ matrix.platform }}
+       steps:
+         - uses: actions/checkout@v4
+         - uses: actions/setup-node@v4
+           with:
+             node-version: 20
+         - uses: dtolnay/rust-toolchain@stable
+
+         - name: Install dependencies
+           run: npm ci
+
+         - name: Build and sign
+           env:
+             TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+             TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+           run: npm run tauri build
+
+         - name: Upload Release Assets
+           uses: softprops/action-gh-release@v1
+           with:
+             files: |
+               src-tauri/target/release/bundle/**/*.msi
+               src-tauri/target/release/bundle/**/*.dmg
+               src-tauri/target/release/bundle/**/*.AppImage
+               src-tauri/target/release/bundle/**/*.deb
+   ```
+
+**Privacy Guarantees**:
+- ✅ **No Analytics**: Zero tracking of who checks for updates
+- ✅ **No User Data**: Only version comparison, no system info sent
+- ✅ **No Phoning Home**: Updates come from GitHub, not custom servers
+- ✅ **User Control**: Can be completely disabled
+- ✅ **Transparent**: Open source code shows exactly what data is sent (version number only)
+- ✅ **Secure**: Updates cryptographically signed to prevent tampering
+- ✅ **Local First**: Update files downloaded and installed locally
+
+**What Data Is Sent?**:
+```
+Request to GitHub API:
+GET https://api.github.com/repos/KingOfTheAce2/Bridge-for-Expertise-Audit-and-Research/releases/latest
+
+No headers identifying the user, no cookies, no tracking
+GitHub sees: IP address (standard for any HTTP request), no other data
+Response: JSON with version number, download URL, changelog
+```
+
+**Success Criteria**:
+- Updater checks GitHub Releases without errors
+- Update notification appears when new version available
+- Update can be installed successfully
+- Settings allow disabling auto-checks
+- No user data sent (verify in network logs)
+- Works on all target platforms (Windows, macOS, Linux)
+
+**Documentation**:
+- Add "Privacy: What Data We Send" section to README
+- Explain updater in terms of service / privacy policy
+- Document how to disable updater
+- Show network traffic examples
 
 ---
 
