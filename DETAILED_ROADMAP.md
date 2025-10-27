@@ -14,45 +14,65 @@ This roadmap provides a complete development path from initial project setup thr
 
 **Minimum Viable Product (MVP) = v0.3.0**
 
-The MVP includes **Phase 0-2 only** (GDPR + AI Act compliance). This may seem counterintuitive - an AI assistant without full AI capabilities - but it's strategically correct:
+The MVP includes **Phase 0-2** (Foundation + GDPR + Basic LLM + AI Act compliance). An AI assistant must have working AI, but doesn't need advanced features.
 
-### Why Legal Compliance is the MVP:
+### MVP Requirements Breakdown:
 
-| Phase | Version | Timeline | Required for MVP? | Rationale |
-|-------|---------|----------|-------------------|-----------|
-| **Phase 0** | v0.1.0 | ✅ Complete | ✅ **YES** | Foundation - app must exist and run |
-| **Phase 1** | v0.2.0 | 6-8 weeks | ✅ **YES** | GDPR compliance legally required in EU |
-| **Phase 2** | v0.3.0 | 4-6 weeks | ✅ **YES** | AI Act compliance (Article 52) legally required |
-| Phase 3 | v0.4.0 | 8-12 weeks | ❌ **NO** | Full AI can come after compliance framework |
-| Phase 4 | v0.5.0 | 6-8 weeks | ❌ **NO** | Advanced PII is post-launch enhancement |
+| Phase | Version | Timeline | Required for MVP? | What It Delivers |
+|-------|---------|----------|-------------------|------------------|
+| **Phase 0** | v0.1.0 | ✅ Complete | ✅ **YES** | Foundation - app runs, database works |
+| **Phase 1** | v0.2.0 | 8-10 weeks | ✅ **YES** | GDPR + Auto-updater + **Basic LLM (Ollama)** |
+| **Phase 2** | v0.3.0 | 4-6 weeks | ✅ **YES** | AI Act compliance (Article 52) |
+| Phase 3 | v0.4.0 | 8-12 weeks | ❌ **NO** | Advanced AI (Candle, GPU, quantization) |
+| Phase 4 | v0.5.0 | 6-8 weeks | ❌ **NO** | Advanced PII detection (NER, Presidio) |
 
-**Total Time to MVP**: ~4-5 months from Phase 0 start
+**Total Time to MVP**: ~5-6 months from Phase 0 start
 
 ### Why This Approach Works:
 
-1. **Legal First**: You CANNOT launch in EU without GDPR/AI Act compliance - fix this first
-2. **Basic AI Sufficient**: MVP can use simple LLM integration while compliance framework is rock-solid
-3. **Iterate on AI**: Once compliant, you can safely add Candle, Ollama, RAG, agents, etc.
-4. **Trust Building**: Lawyers trust compliance > features - show you take privacy seriously
+1. **Basic AI in Phase 1**: Ollama integration is simple, stable, and lets users download/use models immediately
+2. **Legal Compliance**: GDPR/AI Act required for EU launch - build this BEFORE complex AI
+3. **Iterate on Advanced AI**: Phase 3 adds Candle, GPU, quantization - these are optimizations, not requirements
+4. **Trust Building**: Lawyers trust compliance > performance - show you take privacy seriously
 5. **Avoid Rework**: Building compliance AFTER complex AI = massive refactoring
 
-### What "MVP" Means:
+### What "MVP" Includes:
 
-- ✅ App runs stably on Windows/Mac/Linux
-- ✅ Database, cases, conversations work
-- ✅ GDPR compliance: encryption, audit logs, right to erasure
-- ✅ AI Act compliance: transparency, human review, output labeling
-- ✅ **Privacy-respecting auto-updater** (Step 0.6a) - push bug fixes without compromising privacy
-- ✅ Basic chat interface (can use OpenAI API, Ollama, or simple responses)
-- ❌ Advanced local models (Candle, quantization) - Phase 3
-- ❌ Advanced PII detection (NER, Presidio) - Phase 4
-- ❌ RAG/legal research - Phase 7
-- ❌ Multi-modal, agents, Word add-in - Phase 6+
+**✅ Core Features (MVP Required):**
+- App runs stably on Windows/Mac/Linux
+- Database, cases, conversations work
+- **Auto-updater** - privacy-respecting update system (moved to Phase 1)
+- **Basic LLM Integration** - Ollama support, download models, chat interface (Phase 1)
+- GDPR compliance: encryption, audit logs, right to erasure (Phase 1)
+- AI Act compliance: transparency, human review, output labeling (Phase 2)
+- Regex-based PII detection (basic, Phase 1)
+
+**❌ Advanced Features (Post-MVP):**
+- Advanced local AI: Candle integration, GPU acceleration, quantization (Phase 3)
+- Advanced PII: NER, Presidio, >98% detection (Phase 4)
+- RAG/legal research: vector DB, semantic search (Phase 7)
+- Multi-modal, agents, Word add-in (Phase 6+)
+
+### Basic vs Advanced LLM:
+
+| Feature | Basic LLM (Phase 1 - MVP) | Advanced LLM (Phase 3 - Post-MVP) |
+|---------|--------------------------|----------------------------------|
+| **Integration** | Ollama API | Candle (native Rust) |
+| **Model Management** | Ollama CLI downloads | Built-in downloader + UI |
+| **Inference** | Ollama handles it | Full control, optimization |
+| **GPU Support** | Ollama manages | CUDA/Metal/ROCm integration |
+| **Quantization** | Ollama auto-quantizes | Manual GGUF, 4/8-bit control |
+| **Effort** | Low (1-2 weeks) | Very High (8-12 weeks) |
+| **User Experience** | "Install Ollama first" | Everything built-in |
+
+**Conclusion**: MVP uses Ollama (simple, proven), then Phase 3 adds Candle (advanced, optimized).
 
 ### Post-MVP Roadmap:
 
-- **v0.4.0** (Phase 3): Candle integration, local 7B models, GPU acceleration
-- **v0.5.0** (Phase 4): NER-based PII detection, >98% detection rate
+- **v0.2.0** (Phase 1): GDPR + Basic LLM (Ollama) - **CAN LAUNCH** (with Ollama dependency)
+- **v0.3.0** (Phase 2): AI Act compliant - **FULL MVP**
+- **v0.4.0** (Phase 3): Candle integration, no Ollama dependency, GPU acceleration
+- **v0.5.0** (Phase 4): Advanced PII detection, >98% accuracy
 - **v1.0.0** (Phase 7-8): RAG, legal research, fortress security - **PRODUCTION READY**
 
 ---
@@ -1048,6 +1068,12 @@ This application draws inspiration from leading local LLM UI clients:
 ---
 
 ### Step 0.6a: Auto-Updater System (Privacy-Respecting)
+**⚠️ NOTE: This step has been MOVED to Phase 1 (Step 1.0) - see lines ~2054-2068**
+
+**This section remains here for reference during Phase 0 implementation.**
+
+---
+
 **Priority**: High | **Effort**: Low | **Risk**: Low
 
 **What**: Implement a privacy-respecting automatic updater that allows pushing updates to clients without compromising the local-first, no-telemetry philosophy.
@@ -2013,10 +2039,115 @@ src-tauri/
 
 ---
 
-## Phase 1: GDPR Compliance (Priority: CRITICAL)
-**Legal Foundation - Articles 5, 12-17, 25, 30, 32**
+## Phase 1: GDPR Compliance + Auto-Updater + Basic LLM (Priority: CRITICAL)
+**Legal Foundation + Infrastructure + AI Integration**
 
-### Step 1: Data Minimization (Art. 5(1)(c))
+**Objective**: Build GDPR-compliant infrastructure while integrating basic LLM capabilities (Ollama). This phase delivers a working AI assistant that can download and use models while respecting privacy laws.
+
+**Key Deliverables**:
+- ✅ GDPR Articles 5, 12-17, 25, 30, 32 compliance
+- ✅ Privacy-respecting auto-updater system (moved from Step 0.6a)
+- ✅ Basic LLM integration (Ollama API)
+- ✅ Model download and management
+- ✅ Functional chat interface with AI responses
+
+**Timeline**: 8-10 weeks
+
+**Note**: Auto-updater implementation details are in Step 0.6a (lines ~1070-1356). Basic LLM integration added as new Step 1.1 below.
+
+---
+
+### Step 1.0: Auto-Updater System - MOVED TO PHASE 1
+**Priority**: High | **Effort**: Low | **Risk**: Low
+
+**Implementation**: See **Step 0.6a** above (lines ~1070-1356) for complete implementation details including:
+- Tauri updater configuration
+- Rust update check/install commands
+- React UI notification component
+- Settings integration
+- CI/CD GitHub Actions workflow
+- Cryptographic signing setup
+- Privacy guarantees and documentation
+
+**Why in Phase 1**: Auto-updater is infrastructure needed before MVP launch. Allows pushing security patches and bug fixes while maintaining privacy-first principles.
+
+**Success Criteria**: See Step 0.6a above.
+
+---
+
+### Step 1.1: Basic LLM Integration - Ollama API
+**Priority**: Critical | **Effort**: Medium (1-2 weeks) | **Risk**: Medium
+
+**What**: Integrate with Ollama for local LLM inference. Users can download models via Ollama and chat with them through BEAR LLM. This is the "Basic AI" that makes the MVP actually functional.
+
+**Why Ollama for MVP**:
+| Factor | Ollama (Phase 1) | Candle (Phase 3) |
+|--------|------------------|------------------|
+| **Development Time** | 1-2 weeks | 8-12 weeks |
+| **Complexity** | Low (REST API) | Very High (Rust ML) |
+| **Model Management** | Ollama handles it | Build ourselves |
+| **GPU Support** | Ollama manages | Manual CUDA/Metal |
+| **User Setup** | Install Ollama | Built-in |
+| **MVP Ready?** | ✅ YES | ❌ Overkill for MVP |
+
+**Implementation Summary**:
+1. **Ollama Client Service** (`src-tauri/src/services/ollama.rs`):
+   - Check if Ollama is running (HTTP GET to localhost:11434)
+   - List available models
+   - Send chat messages
+   - Handle streaming responses
+
+2. **Tauri Commands** (`src-tauri/src/commands/llm.rs`):
+   - `check_ollama_status() -> bool`
+   - `get_available_models() -> Vec<String>`
+   - `send_chat_message(model, messages) -> String`
+
+3. **Frontend Service** (`src/services/llm.ts`):
+   - TypeScript wrapper for Tauri commands
+   - Type-safe message interface
+
+4. **Chat UI** (`src/components/ChatInterface.tsx`):
+   - Model selector dropdown
+   - Message history display
+   - Input field with send button
+   - "Ollama not installed" warning state
+   - Loading indicators
+
+**Dependencies**:
+```toml
+# src-tauri/Cargo.toml
+[dependencies]
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+```
+
+**User Workflow**:
+1. Install BEAR LLM → App detects no Ollama
+2. Install Ollama → `curl https://ollama.ai/install.sh | sh`
+3. Download model → `ollama pull llama2`
+4. Return to BEAR LLM → Model appears in dropdown
+5. Start chatting → Fully local AI responses
+
+**Success Criteria**:
+- ✅ Detects Ollama running/not running
+- ✅ Lists all models from Ollama
+- ✅ Sends messages and displays responses
+- ✅ Conversation history persists in database
+- ✅ Model switching works mid-conversation
+- ✅ Graceful error handling
+- ✅ 100% local processing (verify with network monitor)
+
+**What This Delivers**: A working AI assistant! Users can chat with local LLMs through a clean interface. This is the core functionality needed for MVP.
+
+**Migration to Candle (Phase 3)**:
+- Phase 1: Ollama required, simple integration
+- Phase 3: Add Candle, make Ollama optional
+- Phase 4+: Candle default, Ollama fallback for compatibility
+
+---
+
+### Step 1.2: Data Minimization (Art. 5(1)(c))
 **Priority**: Critical | **Effort**: Medium | **Legal Risk**: High
 
 **What**: Store only files or chats the user explicitly creates or imports.
@@ -2715,12 +2846,24 @@ Consult qualified legal professionals for specific legal matters.
 
 ---
 
-## Phase 3: Local AI Infrastructure (Priority: HIGH)
+## Phase 3: Advanced Local AI Infrastructure (Priority: HIGH - Post-MVP)
 
-### Step 20: Local Model Support with Candle and Hugging Face (Art. 52)
-**Priority**: Critical | **Effort**: Very High | **Legal Risk**: Medium
+**⚠️ NOTE: This phase is POST-MVP. MVP (Phase 1-2) already includes basic LLM via Ollama.**
 
-**What**: Run all inference offline with Candle + Hugging Face. Allow manual model downloads.
+**Objective**: Replace Ollama dependency with native Rust inference engine (Candle). Adds GPU optimization, quantization control, and eliminates external dependencies. This phase is about performance and polish, not core functionality.
+
+**Why After MVP**:
+- Phase 1 already delivers working AI (Ollama integration)
+- Candle adds 8-12 weeks of development time
+- MVP users can start using the product while this is built
+- Advanced features benefit from real user feedback
+
+---
+
+### Step 20: Advanced Model Support with Candle and Hugging Face
+**Priority**: High | **Effort**: Very High | **Legal Risk**: Low
+
+**What**: Replace Ollama with native Rust inference using Candle. Gain full control over model loading, quantization, GPU acceleration. Remove Ollama as a dependency.
 
 **Implementation**:
 - Integrate Candle inference engine (Rust-native)
@@ -4226,15 +4369,17 @@ The goal is not to replace lawyers or just make law firms more profitable. The g
 - **Deliverable**: Working wireframe with case organization and compliance patterns
 - **Success Metric**: App works case-by-case, review workflow functional, compliance UI ready
 
-### Phase 1 (Critical - Q1 2025)
-**Focus**: Legal Compliance - GDPR
+### Phase 1 (Critical - Q1 2025) - **MVP FOUNDATION**
+**Focus**: GDPR Compliance + Auto-Updater + Basic LLM Integration
 **Timeline**: 8-10 weeks
-- Steps 1-12: Complete GDPR compliance
+- **Step 1.0**: Auto-updater system (privacy-respecting)
+- **Step 1.1**: Basic LLM integration (Ollama API)
+- Steps 1.2-1.12: Complete GDPR compliance
   - Data minimization
   - Purpose limitation
   - Transparency & notice
   - Encryption at rest
-  - PII Layer 1 (regex)
+  - PII Layer 1 (regex-based)
   - Access control
   - Data deletion (right to erasure)
   - Data correction
@@ -4242,13 +4387,16 @@ The goal is not to replace lawyers or just make law firms more profitable. The g
   - Audit logging
   - Security by design
   - Privacy notice accessibility
-- **Deliverable**: GDPR-compliant application
-- **Success Metric**: Pass third-party GDPR compliance audit
+- **Deliverable**: GDPR-compliant application + **Working AI chat** (requires Ollama)
+- **Success Metric**:
+  - Pass third-party GDPR compliance audit
+  - Users can chat with local LLMs
+  - Auto-updater pushes updates without compromising privacy
 
-### Phase 2 (Critical - Q1-Q2 2025)
-**Focus**: Legal Compliance - AI Act
+### Phase 2 (Critical - Q1-Q2 2025) - **MVP COMPLETE**
+**Focus**: AI Act Compliance
 **Timeline**: 4-6 weeks
-- Steps 13-19: Complete AI Act compliance
+- Steps 2.1-2.7: Complete AI Act compliance
   - AI transparency labels
   - AI use explanation
   - Output provenance
@@ -4256,21 +4404,27 @@ The goal is not to replace lawyers or just make law firms more profitable. The g
   - Label AI-modified data
   - Local model default
   - Low-risk by design classification
-- **Deliverable**: Fully compliant MVP (GDPR + AI Act)
+- **Deliverable**: Fully compliant MVP (GDPR + AI Act + Working AI)
 - **Success Metric**: Legal review confirms compliance with EU AI Act Article 52
+- **Launch Ready**: Can launch to users with Ollama dependency
 
-### Phase 3 (High - Q2 2025)
-**Focus**: Local AI Infrastructure
+### Phase 3 (High - Q2 2025) - **POST-MVP OPTIMIZATION**
+**Focus**: Advanced Local AI Infrastructure (Remove Ollama Dependency)
 **Timeline**: 8-12 weeks
-- Step 20: Local model support (Candle + Hugging Face)
-  - Candle inference engine integration
+- Step 3.1: Advanced model support (Candle + Hugging Face)
+  - Candle inference engine integration (native Rust)
+  - Replace Ollama dependency
   - Support for Mistral, Llama, Phi-2 models
-  - Model quantization (4-bit, 8-bit)
+  - Model quantization (4-bit, 8-bit) with manual control
   - GPU acceleration (CUDA, Metal, ROCm)
-  - CPU fallback
-  - Model manager UI
-- **Deliverable**: Working local AI with inference
-- **Success Metric**: 7B model running at >10 tokens/sec on GPU, >2 tokens/sec on CPU
+  - CPU fallback optimization
+  - Built-in model manager UI
+  - Model download from Hugging Face
+- **Deliverable**: Advanced local AI with no external dependencies
+- **Success Metric**:
+  - 7B model running at >20 tokens/sec on GPU, >5 tokens/sec on CPU
+  - Ollama becomes optional fallback
+  - Built-in model downloads work
 
 ### Phase 4 (High - Q2-Q3 2025)
 **Focus**: Advanced PII Protection
@@ -4361,19 +4515,33 @@ The goal is not to replace lawyers or just make law firms more profitable. The g
 
 ## Complete Development Timeline
 
-**Total Time to MVP (Phase 0-2)**: ~4-5 months
+**Total Time to MVP (Phase 0-2)**: ~5-6 months
 **Total Time to Full Features (Phase 0-8)**: ~18-24 months
 
 **Milestones**:
-- ✅ **v0.0.20** (Current): Wireframe + basic features
-- 🎯 **v0.1.0** (Phase 0 complete): Working foundation
-- 🎯 **v0.2.0** (Phase 1 complete): GDPR compliant
-- 🎯 **v0.3.0** (Phase 2 complete): AI Act compliant - **MVP READY**
-- 🎯 **v0.4.0** (Phase 3 complete): Local AI working
+- ✅ **v0.0.20** (Current): Wireframe + basic features (Phase 0 complete)
+- 🎯 **v0.1.0** (Phase 0 complete): Working foundation - ✅ ALREADY AT THIS MILESTONE
+- 🎯 **v0.2.0** (Phase 1 complete): GDPR + Auto-updater + **Basic LLM (Ollama)** - **CAN LAUNCH**
+- 🎯 **v0.3.0** (Phase 2 complete): AI Act compliant - **FULL MVP READY**
+- 🎯 **v0.4.0** (Phase 3 complete): Advanced AI (Candle, no Ollama dependency)
 - 🎯 **v0.5.0** (Phase 4 complete): Advanced PII protection
 - 🎯 **v0.6.0** (Phase 5-6 complete): Strategic path implemented
-- 🎯 **v1.0.0** (Phase 7-8 complete): **PRODUCTION READY**
+- 🎯 **v1.0.0** (Phase 7-8 complete): **PRODUCTION READY** (RAG, security hardening)
 - 🎯 **v2.0.0** (Phase 9+): Social impact features
+
+**Key Changes from Original Plan**:
+- **Phase 1 now includes Basic LLM**: Ollama integration added (1-2 weeks extra)
+- **Auto-updater moved to Phase 1**: Infrastructure needed before MVP launch
+- **Phase 3 is now post-MVP**: Candle integration is optimization, not requirement
+- **MVP timeline**: Slightly longer (5-6 months vs 4-5) but delivers working AI
+
+**What Each Version Delivers**:
+| Version | What Users Can Do | Technical Status |
+|---------|------------------|------------------|
+| v0.2.0 | Chat with local LLMs, GDPR compliant | Requires Ollama install |
+| v0.3.0 | + AI Act compliance, full MVP | Ready for EU market |
+| v0.4.0 | + No Ollama dependency, faster GPU | Built-in everything |
+| v1.0.0 | + Legal research, RAG, fortress security | Production ready |
 
 ---
 
