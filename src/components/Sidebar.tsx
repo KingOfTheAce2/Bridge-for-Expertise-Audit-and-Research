@@ -31,6 +31,7 @@ const Sidebar: React.FC = () => {
         <NavLink to="/models">AI Models</NavLink>
         <NavLink to="/ner-models">NER Models</NavLink>
         <NavLink to="/pii-protection">PII Protection</NavLink>
+        <NavLink to="/about-ai">About AI</NavLink>
         <NavLink to="/settings">Settings</NavLink>
         <NavLink to="/about">About</NavLink>
       </nav>

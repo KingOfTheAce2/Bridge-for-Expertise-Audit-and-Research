@@ -6,6 +6,7 @@ import HomePage from './pages/Home'
 import ModelsPage from './pages/Models'
 import NERModelsPage from './pages/NERModels'
 import PIIProtectionPage from './pages/PIIProtection'
+import AboutAIPage from './pages/AboutAI'
 import SettingsPage from './pages/Settings'
 import AboutPage from './pages/About'
 
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="/models" element={<ModelsPage />} />
             <Route path="/ner-models" element={<NERModelsPage />} />
             <Route path="/pii-protection" element={<PIIProtectionPage />} />
+            <Route path="/about-ai" element={<AboutAIPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/about" element={<AboutPage />} />
           </Routes>

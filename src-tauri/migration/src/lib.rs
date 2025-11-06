@@ -6,6 +6,7 @@ mod m20250101_000003_create_audit_log;
 mod m20250106_000004_create_models;
 mod m20250106_000005_create_pii_operations;
 mod m20250106_000006_create_ner_models;
+mod m20250106_000007_add_ai_act_compliance_fields;
 
 pub struct Migrator;
 
@@ -19,6 +20,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20250106_000004_create_models::Migration),
             Box::new(m20250106_000005_create_pii_operations::Migration),
             Box::new(m20250106_000006_create_ner_models::Migration),
+            Box::new(m20250106_000007_add_ai_act_compliance_fields::Migration),
         ]
     }
 }
