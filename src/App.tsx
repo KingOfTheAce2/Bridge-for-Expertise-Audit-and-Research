@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import Footer from './components/Footer'
 import HomePage from './pages/Home'
 import ModelsPage from './pages/Models'
+import PIIProtectionPage from './pages/PIIProtection'
 import SettingsPage from './pages/Settings'
 import AboutPage from './pages/About'
 
@@ -16,6 +17,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/models" element={<ModelsPage />} />
+            <Route path="/pii-protection" element={<PIIProtectionPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/about" element={<AboutPage />} />
           </Routes>

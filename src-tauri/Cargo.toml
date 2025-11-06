@@ -33,6 +33,9 @@ futures = "0.3"
 indicatif = "0.17"
 dirs = "5.0"
 
+# PII Detection dependencies (Phase 4)
+regex = "1.10"
+
 # Local crates
 entity = { path = "entity" }
 migration = { path = "migration" }
