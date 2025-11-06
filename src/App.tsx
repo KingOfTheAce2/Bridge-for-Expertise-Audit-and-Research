@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Footer from './components/Footer'
 import HomePage from './pages/Home'
+import ChatPage from './pages/Chat'
 import ModelsPage from './pages/Models'
 import NERModelsPage from './pages/NERModels'
 import PIIProtectionPage from './pages/PIIProtection'
@@ -18,6 +19,7 @@ export default function App() {
         <main className="flex-1 overflow-auto">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/chat" element={<ChatPage />} />
             <Route path="/models" element={<ModelsPage />} />
             <Route path="/ner-models" element={<NERModelsPage />} />
             <Route path="/pii-protection" element={<PIIProtectionPage />} />

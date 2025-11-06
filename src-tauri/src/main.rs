@@ -3,6 +3,7 @@ mod database;
 mod models;
 mod pii;
 mod ner;
+mod ai;
 mod services;
 
 use std::sync::Arc;
@@ -18,6 +19,9 @@ async fn main() {
     // NER state
     let ner_manager: Arc<Mutex<Option<ner::NerModelManager>>> = Arc::new(Mutex::new(None));
     let hybrid_detector: Arc<Mutex<Option<ner::HybridDetector>>> = Arc::new(Mutex::new(None));
+
+    // AI inference state (Phase 3)
+    let inference_engine: Arc<Mutex<ai::InferenceEngine>> = Arc::new(Mutex::new(ai::InferenceEngine::new()));
 
     tauri::Builder::default()
         .setup(|app| {
@@ -39,6 +43,7 @@ async fn main() {
             app.manage(anonymizer);
             app.manage(ner_manager);
             app.manage(hybrid_detector);
+            app.manage(inference_engine);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -73,6 +78,16 @@ async fn main() {
             commands::ner::get_ner_recommendations,
             commands::ner::cancel_ner_download,
             commands::ner::get_ner_status,
+            // AI conversation and inference commands (Phase 3)
+            commands::conversation::load_ai_model,
+            commands::conversation::unload_ai_model,
+            commands::conversation::get_ai_model_status,
+            commands::conversation::generate_ai_response,
+            commands::conversation::generate_ai_response_stream,
+            commands::conversation::get_system_prompts,
+            commands::conversation::get_conversation_history,
+            commands::conversation::create_conversation,
+            commands::conversation::delete_conversation,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
