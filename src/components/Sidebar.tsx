@@ -29,6 +29,7 @@ const Sidebar: React.FC = () => {
       <nav className="px-2 space-y-1">
         <NavLink to="/">Home</NavLink>
         <NavLink to="/models">AI Models</NavLink>
+        <NavLink to="/ner-models">NER Models</NavLink>
         <NavLink to="/pii-protection">PII Protection</NavLink>
         <NavLink to="/settings">Settings</NavLink>
         <NavLink to="/about">About</NavLink>
