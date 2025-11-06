@@ -16,6 +16,8 @@ lerna-debug.log*
 
 # Tauri / Rust
 src-tauri/target
+target/
+src-tauri/gen/
 # src-tauri/Cargo.lock  # DO NOT ignore - needed for reproducible builds
 /.cargo
 **/*.rs.bk
@@ -40,6 +42,7 @@ src-tauri/target
 !.vscode/extensions.json
 !.vscode/settings.json
 .idea
+.vs/
 .claude/
 *.swp
 *.swo
@@ -74,3 +77,5 @@ coverage
 *.tmp
 *.temp
 .cache
+nul
+src-tauri/nul
