@@ -1,0 +1,375 @@
+.models-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.models-header {
+  margin-bottom: 2rem;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.models-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #1a202c;
+}
+
+.models-header p {
+  color: #718096;
+  font-size: 1rem;
+}
+
+.models-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 8px;
+}
+
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.models-filters label {
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.disk-space-info {
+  font-size: 0.9rem;
+  color: #4a5568;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #cbd5e0;
+}
+
+.models-filters select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.models-filters select:hover {
+  border-color: #4299e1;
+}
+
+.models-filters select:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.models-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.model-card {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s;
+}
+
+.model-card:hover {
+  border-color: #cbd5e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.model-card.active {
+  border-color: #48bb78;
+  background: #f0fff4;
+}
+
+.model-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.model-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+  flex: 1;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.gray {
+  background: #edf2f7;
+  color: #4a5568;
+}
+
+.status-badge.blue {
+  background: #bee3f8;
+  color: #2c5282;
+}
+
+.status-badge.green {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.status-badge.red {
+  background: #fed7d7;
+  color: #742a2a;
+}
+
+.model-description {
+  color: #4a5568;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.model-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 8px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-item .label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-item .value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.model-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.model-tags .tag {
+  padding: 0.25rem 0.75rem;
+  background: #edf2f7;
+  color: #4a5568;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.download-progress {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #ebf8ff;
+  border-radius: 8px;
+  border: 1px solid #bee3f8;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2c5282;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4299e1, #3182ce);
+  transition: width 0.3s ease;
+}
+
+.progress-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
+.btn-cancel-download {
+  padding: 0.25rem 0.75rem;
+  background: #fc8181;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel-download:hover {
+  background: #f56565;
+  transform: translateY(-1px);
+}
+
+.model-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #4299e1;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #3182ce;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(66, 153, 225, 0.3);
+}
+
+.btn-danger {
+  background: #fc8181;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #f56565;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(245, 101, 101, 0.3);
+}
+
+.active-indicator {
+  flex: 1;
+  padding: 0.75rem;
+  background: #c6f6d5;
+  color: #22543d;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.loading,
+.error,
+.no-models {
+  text-align: center;
+  padding: 3rem;
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+.error {
+  color: #e53e3e;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .models-header h1 {
+    color: #f7fafc;
+  }
+
+  .models-header p {
+    color: #a0aec0;
+  }
+
+  .models-filters {
+    background: #2d3748;
+  }
+
+  .models-filters label {
+    color: #e2e8f0;
+  }
+
+  .models-filters select {
+    background: #1a202c;
+    border-color: #4a5568;
+    color: #e2e8f0;
+  }
+
+  .model-card {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .model-card.active {
+    background: #1c4532;
+    border-color: #48bb78;
+  }
+
+  .model-header h3 {
+    color: #f7fafc;
+  }
+
+  .model-description {
+    color: #cbd5e0;
+  }
+
+  .model-details {
+    background: #1a202c;
+  }
+
+  .detail-item .value {
+    color: #e2e8f0;
+  }
+
+  .model-tags .tag {
+    background: #4a5568;
+    color: #e2e8f0;
+  }
+}

@@ -10,6 +10,18 @@ pub struct Model {
     pub content: String,
     pub is_ai_generated: bool,
     pub was_edited: bool,
+
+    // AI Act Compliance - Article 52
+    pub content_source: String,  // "ai" | "human" | "ai-assisted"
+
+    // Output Provenance - Article 52
+    pub model_name: Option<String>,        // e.g., "mistral-7b-instruct-v0.2"
+    pub model_version: Option<String>,     // e.g., "v0.2" or date
+    pub generation_timestamp: Option<DateTime>,
+    pub anonymization_applied: Option<String>, // "layer1-regex" | "layer2-ner" | "none"
+    pub edit_count: i32,                   // Number of user edits
+    pub metadata: Option<String>,          // JSON metadata
+
     pub created_at: DateTime,
 }
 
