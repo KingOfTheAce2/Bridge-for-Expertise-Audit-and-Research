@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Footer from './components/Footer'
 import HomePage from './pages/Home'
+import ModelsPage from './pages/Models'
 import SettingsPage from './pages/Settings'
 import AboutPage from './pages/About'
 
@@ -14,6 +15,7 @@ export default function App() {
         <main className="flex-1 overflow-auto">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/models" element={<ModelsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/about" element={<AboutPage />} />
           </Routes>

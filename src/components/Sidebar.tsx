@@ -28,6 +28,7 @@ const Sidebar: React.FC = () => {
       </div>
       <nav className="px-2 space-y-1">
         <NavLink to="/">Home</NavLink>
+        <NavLink to="/models">AI Models</NavLink>
         <NavLink to="/settings">Settings</NavLink>
         <NavLink to="/about">About</NavLink>
       </nav>
