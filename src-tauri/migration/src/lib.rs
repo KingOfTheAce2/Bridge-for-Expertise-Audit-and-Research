@@ -4,6 +4,7 @@ mod m20250101_000001_create_settings;
 mod m20250101_000002_create_cases;
 mod m20250101_000003_create_audit_log;
 mod m20250106_000004_create_models;
+mod m20250106_000005_create_pii_operations;
 
 pub struct Migrator;
 
@@ -15,6 +16,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20250101_000002_create_cases::Migration),
             Box::new(m20250101_000003_create_audit_log::Migration),
             Box::new(m20250106_000004_create_models::Migration),
+            Box::new(m20250106_000005_create_pii_operations::Migration),
         ]
     }
 }

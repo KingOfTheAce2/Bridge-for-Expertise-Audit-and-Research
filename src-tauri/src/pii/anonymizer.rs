@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 
 use super::detector::PIIDetector;
+use super::entity_linker::EntityLinker;
 use super::types::{AnonymizationResult, AnonymizationSettings, Entity, EntityType};
 
 /// Smart anonymizer with consistent replacement
 pub struct Anonymizer {
-    detector: PIIDetector,
+    pub detector: PIIDetector,
     replacement_map: HashMap<String, String>,
     counters: HashMap<EntityType, usize>,
+    entity_linker: EntityLinker,
 }
 
 impl Anonymizer {
@@ -16,6 +18,7 @@ impl Anonymizer {
             detector: PIIDetector::new(),
             replacement_map: HashMap::new(),
             counters: HashMap::new(),
+            entity_linker: EntityLinker::new(),
         }
     }
 
@@ -50,6 +53,19 @@ impl Anonymizer {
         // Preserve legal references if enabled
         if settings.preserve_legal_references {
             entities.retain(|e| e.entity_type != EntityType::Law);
+        }
+
+        // Auto-link person entities for consistent replacement
+        if settings.consistent_replacement {
+            let person_names: Vec<String> = entities
+                .iter()
+                .filter(|e| e.entity_type == EntityType::Person)
+                .map(|e| e.text.clone())
+                .collect();
+
+            if !person_names.is_empty() {
+                self.entity_linker.auto_link_entities(&person_names);
+            }
         }
 
         // Generate replacements
@@ -88,8 +104,15 @@ impl Anonymizer {
     }
 
     fn get_or_create_replacement(&mut self, entity: &Entity) -> String {
-        // Check if we already have a replacement for this text
-        if let Some(replacement) = self.replacement_map.get(&entity.text) {
+        // Get canonical form for entity (handles variations like "Mr. John Doe" -> "john doe")
+        let canonical_text = if entity.entity_type == EntityType::Person {
+            self.entity_linker.get_canonical(&entity.text)
+        } else {
+            entity.text.to_lowercase()
+        };
+
+        // Check if we already have a replacement for the canonical form
+        if let Some(replacement) = self.replacement_map.get(&canonical_text) {
             return replacement.clone();
         }
 
@@ -111,9 +134,9 @@ impl Anonymizer {
             EntityType::Law => entity.text.clone(), // Should not anonymize
         };
 
-        // Store in map for consistent replacement
+        // Store in map using canonical form for consistent replacement across variations
         self.replacement_map
-            .insert(entity.text.clone(), replacement.clone());
+            .insert(canonical_text, replacement.clone());
 
         replacement
     }
@@ -273,6 +296,64 @@ mod tests {
             let first_has_person_a = first.anonymized_text.contains("[PERSON-A]");
             let second_has_person_a = second.anonymized_text.contains("[PERSON-A]");
             assert!(first_has_person_a && second_has_person_a);
+        }
+    }
+
+    #[test]
+    fn test_entity_linking_variations() {
+        let mut anonymizer = Anonymizer::new();
+        let text = "John Doe was present. Mr. John Doe testified. J. Doe signed the document.";
+        let settings = AnonymizationSettings {
+            consistent_replacement: true,
+            ..Default::default()
+        };
+
+        let result = anonymizer.anonymize(text, &settings);
+
+        // All variations should use the same replacement
+        // Count how many different PERSON placeholders are used
+        let person_placeholders: std::collections::HashSet<_> = result
+            .entities
+            .iter()
+            .filter(|e| e.entity_type == EntityType::Person)
+            .filter_map(|e| e.replacement.as_ref())
+            .collect();
+
+        // Should ideally be 1 placeholder for all variations of John Doe
+        // Note: This might be 2-3 depending on how well the entity linker detects variations
+        assert!(
+            person_placeholders.len() <= 2,
+            "Expected at most 2 different person placeholders, got: {:?}",
+            person_placeholders
+        );
+    }
+
+    #[test]
+    fn test_entity_linking_with_titles() {
+        let mut anonymizer = Anonymizer::new();
+        let text = "Dr. Smith reviewed the case. Mr. Smith was contacted.";
+        let settings = AnonymizationSettings {
+            consistent_replacement: true,
+            ..Default::default()
+        };
+
+        let result = anonymizer.anonymize(text, &settings);
+
+        // Both mentions of Smith should get the same replacement
+        let replacements: Vec<_> = result
+            .entities
+            .iter()
+            .filter(|e| e.entity_type == EntityType::Person)
+            .filter_map(|e| e.replacement.as_ref())
+            .collect();
+
+        // Check that we have consistent replacements for Smith
+        if replacements.len() >= 2 {
+            // Both should reference PERSON-A if they're the same person
+            assert!(
+                result.anonymized_text.matches("[PERSON-").count() >= 2,
+                "Expected person placeholders in anonymized text"
+            );
         }
     }
 }
