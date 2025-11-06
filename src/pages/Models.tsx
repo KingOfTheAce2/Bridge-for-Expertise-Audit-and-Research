@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { modelService, ModelInfo, DownloadProgress } from '../services/modelService';
+import AddCustomModel from '../components/AddCustomModel';
 import '../styles/Models.css';
 
 const Models: React.FC = () => {
@@ -9,10 +10,13 @@ const Models: React.FC = () => {
   const [downloadProgress, setDownloadProgress] = useState<Record<string, DownloadProgress>>({});
   const [filterSize, setFilterSize] = useState<string>('all');
   const [activeModelId, setActiveModelId] = useState<string | null>(null);
+  const [showAddCustomModel, setShowAddCustomModel] = useState(false);
+  const [diskSpace, setDiskSpace] = useState<number | null>(null);
 
   useEffect(() => {
     loadModels();
     loadActiveModel();
+    loadDiskSpace();
 
     // Listen to download progress
     const setupListener = async () => {
@@ -23,9 +27,10 @@ const Models: React.FC = () => {
         }));
 
         // Reload models when download completes
-        if (progress.status === 'Completed' || progress.status === 'Failed') {
+        if (progress.status === 'Completed' || progress.status === 'Failed' || progress.status === 'Cancelled') {
           setTimeout(() => {
             loadModels();
+            loadDiskSpace();
           }, 1000);
         }
       });
@@ -56,6 +61,15 @@ const Models: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to load active model:', err);
+    }
+  };
+
+  const loadDiskSpace = async () => {
+    try {
+      const space = await modelService.checkDiskSpace();
+      setDiskSpace(space);
+    } catch (err) {
+      console.error('Failed to load disk space:', err);
     }
   };
 
@@ -91,6 +105,14 @@ const Models: React.FC = () => {
     }
   };
 
+  const handleCancelDownload = async () => {
+    try {
+      await modelService.cancelDownload();
+    } catch (err) {
+      console.error('Failed to cancel download:', err);
+    }
+  };
+
   const filteredModels = filterSize === 'all'
     ? models
     : models.filter((m) => m.size === filterSize);
@@ -119,18 +141,35 @@ const Models: React.FC = () => {
   return (
     <div className="models-container">
       <header className="models-header">
-        <h1>AI Models</h1>
-        <p>Download and manage AI models for local inference</p>
+        <div className="header-content">
+          <div>
+            <h1>AI Models</h1>
+            <p>Download and manage AI models for local inference</p>
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowAddCustomModel(true)}
+          >
+            + Add Custom Model
+          </button>
+        </div>
       </header>
 
       <div className="models-filters">
-        <label>Filter by size:</label>
-        <select value={filterSize} onChange={(e) => setFilterSize(e.target.value)}>
-          <option value="all">All Sizes</option>
-          <option value="small">Small (1-3B)</option>
-          <option value="medium">Medium (7-13B)</option>
-          <option value="large">Large (30-70B)</option>
-        </select>
+        <div className="filter-section">
+          <label>Filter by size:</label>
+          <select value={filterSize} onChange={(e) => setFilterSize(e.target.value)}>
+            <option value="all">All Sizes</option>
+            <option value="small">Small (1-3B)</option>
+            <option value="medium">Medium (7-13B)</option>
+            <option value="large">Large (30-70B)</option>
+          </select>
+        </div>
+        {diskSpace !== null && (
+          <div className="disk-space-info">
+            <span>Available Space: {modelService.formatFileSize(diskSpace)}</span>
+          </div>
+        )}
       </div>
 
       <div className="models-grid">
@@ -194,6 +233,13 @@ const Models: React.FC = () => {
                     <span>
                       {modelService.formatFileSize(progress.downloaded_bytes)} / {modelService.formatFileSize(progress.total_bytes)}
                     </span>
+                    <button
+                      className="btn-cancel-download"
+                      onClick={handleCancelDownload}
+                      title="Cancel download"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </div>
               )}
@@ -240,6 +286,16 @@ const Models: React.FC = () => {
         <div className="no-models">
           No models found for the selected filter.
         </div>
+      )}
+
+      {showAddCustomModel && (
+        <AddCustomModel
+          onClose={() => setShowAddCustomModel(false)}
+          onSuccess={() => {
+            loadModels();
+            alert('Custom model added successfully!');
+          }}
+        />
       )}
     </div>
   );

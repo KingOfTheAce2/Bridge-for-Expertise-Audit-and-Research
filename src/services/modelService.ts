@@ -145,6 +145,84 @@ class ModelService {
     };
     return colors[status] || 'gray';
   }
+
+  /**
+   * Cancel an ongoing download
+   */
+  async cancelDownload(): Promise<string> {
+    try {
+      const result = await invoke<string>('cancel_download');
+      return result;
+    } catch (error) {
+      console.error('Failed to cancel download:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add a custom model
+   */
+  async addCustomModel(request: {
+    model_id: string;
+    name: string;
+    description: string;
+    download_url: string;
+    size: string;
+    parameters: string;
+    quantization?: string;
+    format: string;
+    file_size: number;
+    checksum?: string;
+    tags: string[];
+  }): Promise<string> {
+    try {
+      const result = await invoke<string>('add_custom_model', { request });
+      return result;
+    } catch (error) {
+      console.error('Failed to add custom model:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check available disk space
+   */
+  async checkDiskSpace(): Promise<number> {
+    try {
+      const space = await invoke<number>('check_disk_space');
+      return space;
+    } catch (error) {
+      console.error('Failed to check disk space:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Import a model from a local file
+   */
+  async importModelFile(
+    filePath: string,
+    modelId: string,
+    name: string,
+    description: string,
+    size: string,
+    parameters: string
+  ): Promise<string> {
+    try {
+      const result = await invoke<string>('import_model_file', {
+        filePath,
+        modelId,
+        name,
+        description,
+        size,
+        parameters,
+      });
+      return result;
+    } catch (error) {
+      console.error('Failed to import model:', error);
+      throw error;
+    }
+  }
 }
 
 export const modelService = new ModelService();

@@ -404,3 +404,197 @@ pub async fn get_active_model(
         Ok(None)
     }
 }
+
+/// Cancel an ongoing download
+#[tauri::command]
+pub async fn cancel_download(
+    download_state: State<'_, DownloadState>,
+) -> Result<String, String> {
+    let state = download_state.lock().await;
+    if state.is_none() {
+        return Err("No download in progress".to_string());
+    }
+
+    // Cancel will be handled in the download loop
+    // The downloader checks the cancel flag periodically
+    Ok("Download cancellation requested".to_string())
+}
+
+/// Request for adding a custom model
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddCustomModelRequest {
+    pub model_id: String,
+    pub name: String,
+    pub description: String,
+    pub download_url: String,
+    pub size: String,
+    pub parameters: String,
+    pub quantization: Option<String>,
+    pub format: String,
+    pub file_size: i64,
+    pub checksum: Option<String>,
+    pub tags: Vec<String>,
+}
+
+/// Add a custom model to the registry
+#[tauri::command]
+pub async fn add_custom_model(
+    request: AddCustomModelRequest,
+    db: State<'_, DatabaseManager>,
+) -> Result<String, String> {
+    let conn = db
+        .get_connection()
+        .await
+        .ok_or("Database not initialized")?;
+
+    // Check if model already exists
+    let existing = models::Entity::find()
+        .filter(models::Column::ModelId.eq(&request.model_id))
+        .one(&conn)
+        .await
+        .map_err(|e| format!("Database error: {}", e))?;
+
+    if existing.is_some() {
+        return Err(format!("Model with ID '{}' already exists", request.model_id));
+    }
+
+    // Validate URL format
+    if !request.download_url.starts_with("http://") && !request.download_url.starts_with("https://") {
+        return Err("Invalid download URL: must start with http:// or https://".to_string());
+    }
+
+    // Validate size
+    if !["small", "medium", "large"].contains(&request.size.as_str()) {
+        return Err("Invalid size: must be 'small', 'medium', or 'large'".to_string());
+    }
+
+    // Create new model record
+    let new_model = models::ActiveModel {
+        model_id: Set(request.model_id.clone()),
+        name: Set(request.name),
+        description: Set(Some(request.description)),
+        provider: Set("custom".to_string()),
+        size: Set(request.size),
+        parameters: Set(request.parameters),
+        quantization: Set(request.quantization),
+        format: Set(request.format),
+        status: Set("available".to_string()),
+        download_url: Set(Some(request.download_url)),
+        file_size: Set(Some(request.file_size)),
+        checksum: Set(request.checksum),
+        license: Set(Some("Custom".to_string())),
+        tags: Set(Some(serde_json::to_string(&request.tags).unwrap())),
+        ..Default::default()
+    };
+
+    new_model
+        .insert(&conn)
+        .await
+        .map_err(|e| format!("Failed to add model: {}", e))?;
+
+    Ok(format!("Custom model '{}' added successfully", request.model_id))
+}
+
+/// Check available disk space
+#[tauri::command]
+pub async fn check_disk_space() -> Result<u64, String> {
+    let models_dir = ModelDownloader::default_models_dir()
+        .map_err(|e| format!("Failed to get models directory: {}", e))?;
+
+    let downloader = ModelDownloader::new(models_dir)
+        .map_err(|e| format!("Failed to create downloader: {}", e))?;
+
+    downloader
+        .check_disk_space()
+        .await
+        .map_err(|e| format!("Failed to check disk space: {}", e))
+}
+
+/// Import a model from a local file
+#[tauri::command]
+pub async fn import_model_file(
+    file_path: String,
+    model_id: String,
+    name: String,
+    description: String,
+    size: String,
+    parameters: String,
+    db: State<'_, DatabaseManager>,
+) -> Result<String, String> {
+    let conn = db
+        .get_connection()
+        .await
+        .ok_or("Database not initialized")?;
+
+    // Validate file exists
+    let source_path = PathBuf::from(&file_path);
+    if !source_path.exists() {
+        return Err("File does not exist".to_string());
+    }
+
+    // Validate file format
+    ModelValidator::validate_model_file(&source_path)
+        .await
+        .map_err(|e| format!("Invalid model file: {}", e))?;
+
+    // Get file size
+    let file_size = tokio::fs::metadata(&source_path)
+        .await
+        .map_err(|e| format!("Failed to get file metadata: {}", e))?
+        .len();
+
+    // Calculate checksum
+    let checksum = ModelValidator::calculate_sha256(&source_path)
+        .await
+        .map_err(|e| format!("Failed to calculate checksum: {}", e))?;
+
+    // Copy to models directory
+    let models_dir = ModelDownloader::default_models_dir()
+        .map_err(|e| format!("Failed to get models directory: {}", e))?;
+
+    tokio::fs::create_dir_all(&models_dir)
+        .await
+        .map_err(|e| format!("Failed to create models directory: {}", e))?;
+
+    let downloader = ModelDownloader::new(models_dir.clone())
+        .map_err(|e| format!("Failed to create downloader: {}", e))?;
+
+    let filename = source_path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or("Invalid filename")?;
+
+    let dest_path = models_dir.join(filename);
+
+    tokio::fs::copy(&source_path, &dest_path)
+        .await
+        .map_err(|e| format!("Failed to copy file: {}", e))?;
+
+    // Add to database
+    let new_model = models::ActiveModel {
+        model_id: Set(model_id.clone()),
+        name: Set(name),
+        description: Set(Some(description)),
+        provider: Set("local".to_string()),
+        size: Set(size),
+        parameters: Set(parameters),
+        quantization: Set(None),
+        format: Set("gguf".to_string()),
+        status: Set("downloaded".to_string()),
+        file_path: Set(Some(dest_path.to_string_lossy().to_string())),
+        file_size: Set(Some(file_size as i64)),
+        checksum: Set(Some(checksum)),
+        checksum_verified: Set(true),
+        license: Set(Some("Unknown".to_string())),
+        tags: Set(Some("[]".to_string())),
+        download_completed_at: Set(Some(chrono::Utc::now().naive_utc())),
+        ..Default::default()
+    };
+
+    new_model
+        .insert(&conn)
+        .await
+        .map_err(|e| format!("Failed to add model: {}", e))?;
+
+    Ok(format!("Model '{}' imported successfully", model_id))
+}

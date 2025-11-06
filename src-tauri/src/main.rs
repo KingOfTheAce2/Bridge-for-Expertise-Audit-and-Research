@@ -42,6 +42,10 @@ async fn main() {
             commands::models::delete_model,
             commands::models::set_active_model,
             commands::models::get_active_model,
+            commands::models::cancel_download,
+            commands::models::add_custom_model,
+            commands::models::check_disk_space,
+            commands::models::import_model_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

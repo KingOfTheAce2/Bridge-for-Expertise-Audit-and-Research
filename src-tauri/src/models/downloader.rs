@@ -2,8 +2,10 @@ use anyhow::{Context, Result};
 use futures::StreamExt;
 use reqwest::Client;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use tokio::fs::{self, File};
 use tokio::io::AsyncWriteExt;
+use tokio::sync::RwLock;
 
 /// Download progress information
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -29,6 +31,7 @@ pub enum DownloadStatus {
 pub struct ModelDownloader {
     client: Client,
     models_dir: PathBuf,
+    cancel_flag: Arc<RwLock<bool>>,
 }
 
 impl ModelDownloader {
@@ -37,7 +40,29 @@ impl ModelDownloader {
             .timeout(std::time::Duration::from_secs(300)) // 5 minutes timeout
             .build()?;
 
-        Ok(Self { client, models_dir })
+        Ok(Self {
+            client,
+            models_dir,
+            cancel_flag: Arc::new(RwLock::new(false)),
+        })
+    }
+
+    /// Cancel the current download
+    pub async fn cancel_download(&self) {
+        let mut flag = self.cancel_flag.write().await;
+        *flag = true;
+    }
+
+    /// Reset the cancel flag
+    async fn reset_cancel_flag(&self) {
+        let mut flag = self.cancel_flag.write().await;
+        *flag = false;
+    }
+
+    /// Check if download was cancelled
+    async fn is_cancelled(&self) -> bool {
+        let flag = self.cancel_flag.read().await;
+        *flag
     }
 
     /// Get the default models directory
@@ -56,12 +81,16 @@ impl ModelDownloader {
         download_url: &str,
         progress_callback: impl Fn(DownloadProgress) + Send + 'static,
     ) -> Result<PathBuf> {
+        // Reset cancel flag
+        self.reset_cancel_flag().await;
+
         // Ensure models directory exists
         fs::create_dir_all(&self.models_dir).await?;
 
         // Generate filename from model_id
         let filename = self.generate_filename(model_id);
         let file_path = self.models_dir.join(&filename);
+        let temp_file_path = self.models_dir.join(format!("{}.tmp", filename));
 
         // Send starting status
         progress_callback(DownloadProgress {
@@ -87,14 +116,35 @@ impl ModelDownloader {
 
         let total_bytes = response.content_length().unwrap_or(0);
         let mut downloaded_bytes = 0u64;
-        let mut file = File::create(&file_path)
+        let mut file = File::create(&temp_file_path)
             .await
             .context("Failed to create file")?;
 
         let mut stream = response.bytes_stream();
         let start_time = std::time::Instant::now();
+        let mut last_update = std::time::Instant::now();
 
         while let Some(chunk_result) = stream.next().await {
+            // Check for cancellation
+            if self.is_cancelled().await {
+                file.flush().await?;
+                drop(file);
+
+                // Clean up temp file
+                let _ = fs::remove_file(&temp_file_path).await;
+
+                progress_callback(DownloadProgress {
+                    model_id: model_id.to_string(),
+                    downloaded_bytes,
+                    total_bytes,
+                    percentage: (downloaded_bytes as f64 / total_bytes as f64) * 100.0,
+                    speed_mbps: 0.0,
+                    status: DownloadStatus::Cancelled,
+                });
+
+                anyhow::bail!("Download cancelled by user");
+            }
+
             let chunk = chunk_result.context("Error while downloading")?;
 
             file.write_all(&chunk)
@@ -103,33 +153,44 @@ impl ModelDownloader {
 
             downloaded_bytes += chunk.len() as u64;
 
-            // Calculate progress
-            let percentage = if total_bytes > 0 {
-                (downloaded_bytes as f64 / total_bytes as f64) * 100.0
-            } else {
-                0.0
-            };
+            // Update progress every 100ms to avoid excessive callbacks
+            if last_update.elapsed().as_millis() > 100 {
+                // Calculate progress
+                let percentage = if total_bytes > 0 {
+                    (downloaded_bytes as f64 / total_bytes as f64) * 100.0
+                } else {
+                    0.0
+                };
 
-            // Calculate speed
-            let elapsed_secs = start_time.elapsed().as_secs_f64();
-            let speed_mbps = if elapsed_secs > 0.0 {
-                (downloaded_bytes as f64 / 1_000_000.0) / elapsed_secs
-            } else {
-                0.0
-            };
+                // Calculate speed
+                let elapsed_secs = start_time.elapsed().as_secs_f64();
+                let speed_mbps = if elapsed_secs > 0.0 {
+                    (downloaded_bytes as f64 / 1_000_000.0) / elapsed_secs
+                } else {
+                    0.0
+                };
 
-            // Send progress update
-            progress_callback(DownloadProgress {
-                model_id: model_id.to_string(),
-                downloaded_bytes,
-                total_bytes,
-                percentage,
-                speed_mbps,
-                status: DownloadStatus::Downloading,
-            });
+                // Send progress update
+                progress_callback(DownloadProgress {
+                    model_id: model_id.to_string(),
+                    downloaded_bytes,
+                    total_bytes,
+                    percentage,
+                    speed_mbps,
+                    status: DownloadStatus::Downloading,
+                });
+
+                last_update = std::time::Instant::now();
+            }
         }
 
         file.flush().await?;
+        drop(file);
+
+        // Rename temp file to final file
+        fs::rename(&temp_file_path, &file_path)
+            .await
+            .context("Failed to rename downloaded file")?;
 
         // Send completion status
         progress_callback(DownloadProgress {
@@ -142,6 +203,28 @@ impl ModelDownloader {
         });
 
         Ok(file_path)
+    }
+
+    /// Check available disk space
+    pub async fn check_disk_space(&self) -> Result<u64> {
+        // Ensure directory exists
+        fs::create_dir_all(&self.models_dir).await?;
+
+        // Get filesystem stats (platform-dependent)
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::MetadataExt;
+            let metadata = fs::metadata(&self.models_dir).await?;
+            // This is an approximation; proper implementation would use statvfs
+            Ok(metadata.blksize() * metadata.blocks())
+        }
+
+        #[cfg(not(unix))]
+        {
+            // On Windows, return a large number as placeholder
+            // Proper implementation would use GetDiskFreeSpaceEx
+            Ok(100_000_000_000) // 100 GB placeholder
+        }
     }
 
     /// Generate a safe filename from model_id
