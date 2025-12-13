@@ -1,23 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-/// Model size categories
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ModelSize {
-    Small,  // 1-3B parameters
-    Medium, // 7-13B parameters
-    Large,  // 30-70B parameters
-}
-
-impl ModelSize {
-    pub fn as_str(&self) -> &str {
-        match self {
-            ModelSize::Small => "small",
-            ModelSize::Medium => "medium",
-            ModelSize::Large => "large",
-        }
-    }
-}
-
 /// Model metadata from registry
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelInfo {
@@ -139,31 +121,9 @@ impl ModelRegistry {
         &self.models
     }
 
-    /// Filter models by size
-    pub fn filter_by_size(&self, size: ModelSize) -> Vec<&ModelInfo> {
-        self.models
-            .iter()
-            .filter(|m| m.size == size.as_str())
-            .collect()
-    }
-
-    /// Filter models by tag
-    pub fn filter_by_tag(&self, tag: &str) -> Vec<&ModelInfo> {
-        self.models
-            .iter()
-            .filter(|m| m.tags.iter().any(|t| t == tag))
-            .collect()
-    }
-
     /// Get model by ID
     pub fn get_model(&self, model_id: &str) -> Option<&ModelInfo> {
         self.models.iter().find(|m| m.model_id == model_id)
-    }
-
-    /// Get recommended model for legal work
-    pub fn get_recommended_model(&self) -> Option<&ModelInfo> {
-        // Default recommendation: Mistral 7B Instruct
-        self.get_model("mistralai/Mistral-7B-Instruct-v0.2")
     }
 }
 
@@ -175,15 +135,12 @@ mod tests {
     fn test_model_registry() {
         let registry = ModelRegistry::new();
         assert!(registry.list_models().len() > 0);
-
-        let recommended = registry.get_recommended_model();
-        assert!(recommended.is_some());
     }
 
     #[test]
-    fn test_filter_by_size() {
+    fn test_get_model() {
         let registry = ModelRegistry::new();
-        let small_models = registry.filter_by_size(ModelSize::Small);
-        assert!(small_models.len() > 0);
+        let model = registry.get_model("mistralai/Mistral-7B-Instruct-v0.2");
+        assert!(model.is_some());
     }
 }

@@ -1,3 +1,6 @@
+// Allow dead code - these are API components that will be used from frontend
+#![allow(dead_code)]
+
 use anyhow::{Context, Result};
 use futures::StreamExt;
 use reqwest::Client;
@@ -40,22 +43,27 @@ impl NerModelDownloader {
         })
     }
 
-    /// Set cancel flag to stop download
-    pub async fn cancel(&self) {
-        let mut flag = self.cancel_flag.write().await;
-        *flag = true;
-    }
-
     /// Reset cancel flag
     pub async fn reset_cancel(&self) {
         let mut flag = self.cancel_flag.write().await;
         *flag = false;
     }
 
+    /// Cancel any ongoing download
+    pub async fn cancel(&self) {
+        let mut flag = self.cancel_flag.write().await;
+        *flag = true;
+    }
+
     /// Check if download was cancelled
-    async fn is_cancelled(&self) -> bool {
+    pub async fn is_cancelled(&self) -> bool {
         let flag = self.cancel_flag.read().await;
         *flag
+    }
+
+    /// Get the path where a model would be stored
+    pub fn get_model_path(&self, model_id: &str) -> PathBuf {
+        self.models_dir.join(model_id.replace('/', "_"))
     }
 
     /// Download a complete NER model (model weights + config + tokenizer)
@@ -244,11 +252,6 @@ impl NerModelDownloader {
         let tokenizer_file = model_dir.join("tokenizer.json");
 
         model_file.exists() && config_file.exists() && tokenizer_file.exists()
-    }
-
-    /// Get model directory path
-    pub fn get_model_path(&self, model_id: &str) -> PathBuf {
-        self.models_dir.join(model_id.replace('/', "_"))
     }
 }
 

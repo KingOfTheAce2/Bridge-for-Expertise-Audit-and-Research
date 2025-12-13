@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use futures::StreamExt;
 use reqwest::Client;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::fs::{self, File};
 use tokio::io::AsyncWriteExt;
@@ -45,12 +45,6 @@ impl ModelDownloader {
             models_dir,
             cancel_flag: Arc::new(RwLock::new(false)),
         })
-    }
-
-    /// Cancel the current download
-    pub async fn cancel_download(&self) {
-        let mut flag = self.cancel_flag.write().await;
-        *flag = true;
     }
 
     /// Reset the cancel flag
@@ -241,51 +235,6 @@ impl ModelDownloader {
         } else {
             format!("{}.gguf", safe_name)
         }
-    }
-
-    /// Delete a downloaded model
-    pub async fn delete_model(&self, file_path: &Path) -> Result<()> {
-        if file_path.exists() {
-            fs::remove_file(file_path)
-                .await
-                .context("Failed to delete model file")?;
-        }
-        Ok(())
-    }
-
-    /// Get the size of a downloaded model
-    pub async fn get_model_size(&self, file_path: &Path) -> Result<u64> {
-        let metadata = fs::metadata(file_path)
-            .await
-            .context("Failed to get file metadata")?;
-        Ok(metadata.len())
-    }
-
-    /// Check if a model file exists
-    pub async fn model_exists(&self, model_id: &str) -> bool {
-        let filename = self.generate_filename(model_id);
-        let file_path = self.models_dir.join(&filename);
-        file_path.exists()
-    }
-
-    /// List all downloaded model files
-    pub async fn list_downloaded_models(&self) -> Result<Vec<PathBuf>> {
-        let mut models = Vec::new();
-
-        if !self.models_dir.exists() {
-            return Ok(models);
-        }
-
-        let mut entries = fs::read_dir(&self.models_dir).await?;
-
-        while let Some(entry) = entries.next_entry().await? {
-            let path = entry.path();
-            if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("gguf") {
-                models.push(path);
-            }
-        }
-
-        Ok(models)
     }
 }
 

@@ -1,5 +1,7 @@
+// Allow dead code - these are API components that will be used from frontend
+#![allow(dead_code)]
+
 use anyhow::{Context, Result};
-use std::path::Path;
 use std::sync::Arc;
 use std::time::Instant;
 use tokio::sync::RwLock;
@@ -15,22 +17,12 @@ pub struct NerPipeline {
 }
 
 impl NerPipeline {
+    /// Create a new NER pipeline
     pub fn new(model_manager: Arc<NerModelManager>) -> Self {
         Self {
             model_manager,
             tokenizer: Arc::new(RwLock::new(None)),
         }
-    }
-
-    /// Load tokenizer from disk
-    pub async fn load_tokenizer(&self, tokenizer_path: &Path, max_length: usize) -> Result<()> {
-        let tokenizer = NerTokenizer::from_file(tokenizer_path, max_length)
-            .context("Failed to load tokenizer")?;
-
-        let mut tok_lock = self.tokenizer.write().await;
-        *tok_lock = Some(tokenizer);
-
-        Ok(())
     }
 
     /// Check if pipeline is ready (model and tokenizer loaded)
@@ -52,7 +44,7 @@ impl NerPipeline {
         }
 
         // Get device
-        let config = self
+        let _config = self
             .model_manager
             .get_config()
             .await
@@ -211,18 +203,6 @@ impl NerPipeline {
         }
 
         entities
-    }
-
-    /// Batch prediction
-    pub async fn predict_batch(&self, texts: Vec<&str>) -> Result<Vec<NerResult>> {
-        let mut results = Vec::new();
-
-        for text in texts {
-            let result = self.predict(text).await?;
-            results.push(result);
-        }
-
-        Ok(results)
     }
 }
 

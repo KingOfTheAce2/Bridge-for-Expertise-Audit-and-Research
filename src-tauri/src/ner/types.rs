@@ -32,21 +32,6 @@ pub enum NerLabel {
 }
 
 impl NerLabel {
-    /// Convert label to string representation
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            NerLabel::O => "O",
-            NerLabel::BeginPerson => "B-PER",
-            NerLabel::InsidePerson => "I-PER",
-            NerLabel::BeginOrganization => "B-ORG",
-            NerLabel::InsideOrganization => "I-ORG",
-            NerLabel::BeginLocation => "B-LOC",
-            NerLabel::InsideLocation => "I-LOC",
-            NerLabel::BeginMisc => "B-MISC",
-            NerLabel::InsideMisc => "I-MISC",
-        }
-    }
-
     /// Convert from label ID (0-8)
     pub fn from_id(id: usize) -> Option<Self> {
         match id {
@@ -60,21 +45,6 @@ impl NerLabel {
             7 => Some(NerLabel::BeginMisc),
             8 => Some(NerLabel::InsideMisc),
             _ => None,
-        }
-    }
-
-    /// Get label ID
-    pub fn to_id(&self) -> usize {
-        match self {
-            NerLabel::O => 0,
-            NerLabel::BeginPerson => 1,
-            NerLabel::InsidePerson => 2,
-            NerLabel::BeginOrganization => 3,
-            NerLabel::InsideOrganization => 4,
-            NerLabel::BeginLocation => 5,
-            NerLabel::InsideLocation => 6,
-            NerLabel::BeginMisc => 7,
-            NerLabel::InsideMisc => 8,
         }
     }
 
@@ -208,8 +178,6 @@ mod tests {
     fn test_ner_label_conversions() {
         assert_eq!(NerLabel::from_id(0), Some(NerLabel::O));
         assert_eq!(NerLabel::from_id(1), Some(NerLabel::BeginPerson));
-        assert_eq!(NerLabel::BeginPerson.to_id(), 1);
-        assert_eq!(NerLabel::BeginPerson.as_str(), "B-PER");
     }
 
     #[test]

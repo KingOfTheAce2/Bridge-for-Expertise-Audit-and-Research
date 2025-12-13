@@ -1,0 +1,7 @@
+[build]
+# Disable incremental compilation to avoid Windows file locking issues
+incremental = false
+
+[target.x86_64-pc-windows-msvc]
+# Optimize for faster builds
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]

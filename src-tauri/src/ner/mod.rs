@@ -13,8 +13,8 @@ pub mod registry;
 pub mod downloader;
 
 pub use types::*;
-pub use model_loader::{NerModel, NerModelManager};
-pub use tokenizer::NerTokenizer;
+pub use model_loader::NerModelManager;
+#[allow(unused_imports)]
 pub use inference::NerPipeline;
 pub use hybrid_detector::{HybridDetector, DetectionMode};
 pub use registry::NerModelRegistry;

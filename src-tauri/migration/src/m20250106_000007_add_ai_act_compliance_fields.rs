@@ -7,6 +7,8 @@ pub struct Migration;
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         // Add AI Act Compliance fields to messages table
+        // SQLite only supports one column per ALTER TABLE statement
+
         manager
             .alter_table(
                 Table::alter()
@@ -17,16 +19,64 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .default("human"),
                     )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Messages::Table)
                     .add_column(ColumnDef::new(Messages::ModelName).string())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Messages::Table)
                     .add_column(ColumnDef::new(Messages::ModelVersion).string())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Messages::Table)
                     .add_column(ColumnDef::new(Messages::GenerationTimestamp).timestamp())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Messages::Table)
                     .add_column(ColumnDef::new(Messages::AnonymizationApplied).string())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Messages::Table)
                     .add_column(
                         ColumnDef::new(Messages::EditCount)
                             .integer()
                             .not_null()
                             .default(0),
                     )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Messages::Table)
                     .add_column(ColumnDef::new(Messages::Metadata).string())
                     .to_owned(),
             )

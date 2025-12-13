@@ -146,10 +146,22 @@ impl Anonymizer {
             return text.to_string();
         }
 
+        // Remove overlapping entities - keep the first one encountered
+        let mut filtered_entities: Vec<&Entity> = Vec::new();
+        let mut last_end = 0;
+
+        for entity in entities {
+            // Skip entities that overlap with previously processed ones
+            if entity.start >= last_end {
+                filtered_entities.push(entity);
+                last_end = entity.end;
+            }
+        }
+
         let mut result = String::new();
         let mut last_pos = 0;
 
-        for entity in entities {
+        for entity in filtered_entities {
             // Add text before entity
             result.push_str(&text[last_pos..entity.start]);
 

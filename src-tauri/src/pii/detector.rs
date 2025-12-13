@@ -202,40 +202,87 @@ impl PIIDetector {
     pub fn detect_person_names(&self, text: &str) -> Vec<Entity> {
         let mut entities = Vec::new();
 
-        // Pattern: Capitalized words (likely names)
-        let name_pattern = Regex::new(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b").unwrap();
+        // Pattern: Capitalized words (likely names) - 2-4 words
+        let name_pattern = Regex::new(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3}\b").unwrap();
+
+        // Words that shouldn't start a person's name (all lowercase for comparison)
+        let non_name_starters = [
+            "under", "the", "this", "that", "these", "those",
+            "article", "section", "paragraph", "chapter",
+            "according", "pursuant", "subject", "per",
+            "contact", "call", "email", "visit", "see", "meet",
+            "dear", "hello", "hi", "from", "to", "re",
+        ];
+
+        // Words that shouldn't appear in person names
+        let non_name_words = [
+            "article", "section", "paragraph", "chapter", "regulation",
+            "act", "code", "law", "statute", "rule",
+        ];
+
+        // Exact phrases to exclude
+        let exact_exclusions = [
+            "united states", "supreme court", "district court",
+            "court of", "state of", "city of", "county of",
+        ];
 
         for cap in name_pattern.find_iter(text) {
             let matched_text = cap.as_str();
+            let mut start = cap.start();
+            let text_lower = matched_text.to_lowercase();
 
-            // Filter out common non-name phrases
-            if self.is_likely_name(matched_text) {
-                entities.push(Entity::new(
-                    EntityType::Person,
-                    matched_text.to_string(),
-                    cap.start(),
-                    cap.end(),
-                    0.75, // Lower confidence for name detection
-                ));
+            // Skip exact exclusions
+            if exact_exclusions.iter().any(|&excl| text_lower == excl) {
+                continue;
             }
+
+            // Skip if contains legal terms (as whole words)
+            let has_legal_term = non_name_words.iter().any(|&w| {
+                // Match whole words only by checking word boundaries
+                text_lower.split_whitespace().any(|word| word == w)
+            });
+            if has_legal_term {
+                continue;
+            }
+
+            // Strip leading non-name words
+            let words: Vec<&str> = matched_text.split_whitespace().collect();
+            let mut name_start_idx = 0;
+
+            for (idx, word) in words.iter().enumerate() {
+                let word_lower = word.to_lowercase();
+                if non_name_starters.iter().any(|&s| s == word_lower) {
+                    name_start_idx = idx + 1;
+                } else {
+                    break;
+                }
+            }
+
+            // If we stripped all words, skip this match
+            if name_start_idx >= words.len() || words.len() - name_start_idx < 2 {
+                continue;
+            }
+
+            // Calculate the new start position and extract the name
+            let name_words = &words[name_start_idx..];
+            let name = name_words.join(" ");
+
+            // Calculate byte offset for the stripped words
+            if name_start_idx > 0 {
+                let stripped_prefix: String = words[..name_start_idx].join(" ");
+                start += stripped_prefix.len() + 1; // +1 for the space after
+            }
+
+            entities.push(Entity::new(
+                EntityType::Person,
+                name,
+                start,
+                start + name_words.iter().map(|w| w.len()).sum::<usize>() + name_words.len() - 1,
+                0.75, // Lower confidence for name detection
+            ));
         }
 
         entities
-    }
-
-    fn is_likely_name(&self, text: &str) -> bool {
-        // Exclude common non-name phrases
-        let exclusions = [
-            "United States",
-            "Supreme Court",
-            "District Court",
-            "Court Of",
-            "State Of",
-            "City Of",
-            "County Of",
-        ];
-
-        !exclusions.iter().any(|&excl| text.eq_ignore_ascii_case(excl))
     }
 }
 
@@ -294,5 +341,57 @@ mod tests {
             .collect();
 
         assert!(money_entities.len() >= 1);
+    }
+
+    #[test]
+    fn test_person_name_detection() {
+        use regex::Regex;
+
+        // First verify the regex works
+        let name_pattern = Regex::new(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3}\b").unwrap();
+
+        // Test regex on "Contact John Doe"
+        let test_text = "Contact John Doe at the office.";
+        let matches: Vec<_> = name_pattern.find_iter(test_text).collect();
+        assert!(
+            !matches.is_empty(),
+            "Regex should match something in '{}'. Got {} matches",
+            test_text,
+            matches.len()
+        );
+        let first_match = matches[0].as_str();
+        assert_eq!(
+            first_match, "Contact John Doe",
+            "First match should be 'Contact John Doe'"
+        );
+
+        let detector = PIIDetector::new();
+
+        // Test basic name detection
+        let text = "John Doe is here.";
+        let entities = detector.detect_person_names(text);
+        assert!(
+            entities.iter().any(|e| e.text == "John Doe"),
+            "Should detect 'John Doe' as person. Got: {:?}",
+            entities.iter().map(|e| &e.text).collect::<Vec<_>>()
+        );
+
+        // Test stripping context word - use simpler test first
+        let text3 = "Call Jane Smith today.";
+        let entities3 = detector.detect_person_names(text3);
+        assert!(
+            entities3.iter().any(|e| e.text == "Jane Smith"),
+            "Should detect 'Jane Smith' from 'Call Jane Smith'. Got: {:?}",
+            entities3.iter().map(|e| &e.text).collect::<Vec<_>>()
+        );
+
+        // Test stripping "Contact"
+        let text4 = "Contact John Doe at the office.";
+        let entities4 = detector.detect_person_names(text4);
+        assert!(
+            entities4.iter().any(|e| e.text == "John Doe"),
+            "Should detect 'John Doe' from 'Contact John Doe'. Got: {:?}",
+            entities4.iter().map(|e| &e.text).collect::<Vec<_>>()
+        );
     }
 }

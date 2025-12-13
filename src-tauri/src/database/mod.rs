@@ -1,8 +1,10 @@
 use sea_orm::{Database, DatabaseConnection, DbErr};
+use sea_orm_migration::MigratorTrait;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
 /// Database connection manager shared across Tauri commands.
+#[derive(Clone)]
 pub struct DatabaseManager {
     connection: Arc<Mutex<Option<DatabaseConnection>>>,
 }

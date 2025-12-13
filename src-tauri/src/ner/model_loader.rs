@@ -1,5 +1,8 @@
+// Allow dead code - these are API components that will be used from frontend
+#![allow(dead_code)]
+
 use anyhow::{Context, Result};
-use candle_core::{DType, Device, Tensor};
+use candle_core::{DType, Device, Module, Tensor};
 use candle_nn::VarBuilder;
 use candle_transformers::models::bert::{BertModel, Config as BertConfig};
 use std::path::{Path, PathBuf};
@@ -35,7 +38,7 @@ impl TokenClassificationHead {
 
     pub fn forward(&self, sequence_output: &Tensor, train: bool) -> Result<Tensor> {
         let output = self.dropout.forward(sequence_output, train)?;
-        self.classifier.forward(&output)
+        Ok(self.classifier.forward(&output)?)
     }
 }
 
@@ -43,8 +46,6 @@ impl TokenClassificationHead {
 pub struct NerModel {
     bert: BertModel,
     classifier_head: TokenClassificationHead,
-    config: NerModelConfig,
-    device: Device,
 }
 
 impl NerModel {
@@ -62,19 +63,8 @@ impl NerModel {
             )?
         };
 
-        // Load BERT config
-        let bert_config = BertConfig {
-            vocab_size: config.vocab_size,
-            hidden_size: config.hidden_size,
-            num_hidden_layers: 12, // BERT-base has 12 layers
-            num_attention_heads: 12,
-            intermediate_size: 3072,
-            hidden_act: candle_nn::Activation::Gelu,
-            hidden_dropout_prob: 0.1,
-            max_position_embeddings: config.max_sequence_length,
-            type_vocab_size: 2,
-            ..Default::default()
-        };
+        // Load BERT config - use default and we'll load weights from the model file
+        let bert_config = BertConfig::default();
 
         // Create BERT model
         let bert = BertModel::load(vb.pp("bert"), &bert_config)?;
@@ -89,8 +79,6 @@ impl NerModel {
         Ok(Self {
             bert,
             classifier_head,
-            config,
-            device,
         })
     }
 
@@ -106,6 +94,7 @@ impl NerModel {
         let bert_output = self.bert.forward(
             input_ids,
             token_type_ids.unwrap_or(&Tensor::zeros_like(input_ids)?),
+            attention_mask,
         )?;
 
         // Get sequence output (last hidden state)
@@ -115,16 +104,6 @@ impl NerModel {
         let logits = self.classifier_head.forward(sequence_output, false)?;
 
         Ok(logits)
-    }
-
-    /// Get model configuration
-    pub fn config(&self) -> &NerModelConfig {
-        &self.config
-    }
-
-    /// Get device
-    pub fn device(&self) -> &Device {
-        &self.device
     }
 }
 
@@ -159,18 +138,6 @@ impl NerModelManager {
         *config_lock = Some(config);
 
         Ok(())
-    }
-
-    /// Unload current model
-    pub async fn unload_model(&self) {
-        let mut model_lock = self.model.write().await;
-        *model_lock = None;
-
-        let mut path_lock = self.model_path.write().await;
-        *path_lock = None;
-
-        let mut config_lock = self.config.write().await;
-        *config_lock = None;
     }
 
     /// Check if a model is loaded
@@ -208,6 +175,18 @@ impl NerModelManager {
             attention_mask.as_ref(),
             token_type_ids.as_ref(),
         )
+    }
+
+    /// Unload the current model
+    pub async fn unload_model(&self) {
+        let mut model_lock = self.model.write().await;
+        *model_lock = None;
+
+        let mut path_lock = self.model_path.write().await;
+        *path_lock = None;
+
+        let mut config_lock = self.config.write().await;
+        *config_lock = None;
     }
 }
 

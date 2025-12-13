@@ -21,6 +21,7 @@ log = "0.4"
 env_logger = "0.10"
 
 # AI and Model Management dependencies (Phase 3)
+# Candle with GPU support - conditionally enabled based on platform
 candle-core = "0.7"
 candle-nn = "0.7"
 candle-transformers = "0.7"
@@ -32,10 +33,33 @@ hex = "0.4"
 futures = "0.3"
 indicatif = "0.17"
 dirs = "5.0"
+safetensors = "0.4"
+memmap2 = "0.9"
+
+# Force compatible versions to resolve dependency conflicts
+half = "=2.4.1"  # Pin to version compatible with rand 0.8
 
 # PII Detection dependencies (Phase 4)
 regex = "1.10"
 
+# Prompt Library dependencies (Phase 5)
+serde_yaml = "0.9"
+walkdir = "2.4"
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
 # Local crates
 entity = { path = "entity" }
 migration = { path = "migration" }
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dev-dependencies]
+tempfile = "3.10"
+
+[features]
+default = []
+# GPU acceleration features (opt-in)
+cuda = ["candle-core/cuda", "candle-nn/cuda", "candle-transformers/cuda"]
+metal = ["candle-core/metal", "candle-nn/metal", "candle-transformers/metal"]
+accelerate = ["candle-core/accelerate", "candle-nn/accelerate", "candle-transformers/accelerate"]

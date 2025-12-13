@@ -70,20 +70,22 @@ impl EntityLinker {
     }
 
     fn normalize_text(&self, text: &str) -> String {
-        // Remove titles
-        let without_titles = self.remove_titles(text);
-
-        // Lowercase and trim
-        without_titles.to_lowercase().trim().to_string()
+        // Remove titles (also lowercases the text)
+        self.remove_titles(text)
     }
 
     fn remove_titles(&self, text: &str) -> String {
         let titles = ["mr.", "mrs.", "ms.", "dr.", "prof.", "mr", "mrs", "ms", "dr", "prof"];
 
-        let mut result = text.to_string();
+        // Convert to lowercase for case-insensitive matching
+        let mut result = text.to_lowercase();
         for title in &titles {
+            // Handle "title " and "title. " patterns
             result = result.replace(&format!("{} ", title), "");
-            result = result.replace(&format!("{}. ", title), "");
+            // For titles without dot, also check with dot
+            if !title.ends_with('.') {
+                result = result.replace(&format!("{}. ", title), "");
+            }
         }
 
         result.trim().to_string()

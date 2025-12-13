@@ -53,22 +53,6 @@ impl EntityType {
             _ => true,
         }
     }
-
-    pub fn display_name(&self) -> &str {
-        match self {
-            EntityType::Person => "Person",
-            EntityType::Organization => "Organization",
-            EntityType::Location => "Location",
-            EntityType::Date => "Date",
-            EntityType::Money => "Money",
-            EntityType::Law => "Legal Reference",
-            EntityType::Case => "Case Number",
-            EntityType::Email => "Email",
-            EntityType::Phone => "Phone",
-            EntityType::Identification => "ID Number",
-            EntityType::TechnicalIdentifier => "Technical ID",
-        }
-    }
 }
 
 impl fmt::Display for EntityType {

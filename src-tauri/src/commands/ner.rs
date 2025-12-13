@@ -1,13 +1,12 @@
 use crate::database::DatabaseManager;
 use crate::ner::{
-    DetectionMode, HybridDetector, NerModelDownloader, NerModelInfo, NerModelManager,
-    NerModelRegistry, NerPipeline, NerResult,
+    DetectionMode, HybridDetector, NerModelDownloader, NerModelManager,
+    NerModelRegistry, NerResult,
 };
-use crate::pii::detector::PIIDetector;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tauri::State;
+use tauri::{Emitter, State};
 use tokio::sync::Mutex;
 
 /// Request to download NER model
@@ -43,7 +42,7 @@ pub struct NerInferenceRequest {
 /// List all available NER models
 #[tauri::command]
 pub async fn list_ner_models(
-    db: State<'_, DatabaseManager>,
+    _db: State<'_, DatabaseManager>,
 ) -> Result<Vec<NerModelResponse>, String> {
     let registry = NerModelRegistry::new();
     let models = registry.list_models();
@@ -84,7 +83,7 @@ pub async fn list_ner_models(
 #[tauri::command]
 pub async fn download_ner_model(
     request: DownloadNerModelRequest,
-    db: State<'_, DatabaseManager>,
+    _db: State<'_, DatabaseManager>,
     window: tauri::Window,
 ) -> Result<String, String> {
     let registry = NerModelRegistry::new();
@@ -132,7 +131,7 @@ pub async fn download_ner_model(
 #[tauri::command]
 pub async fn delete_ner_model(
     model_id: String,
-    db: State<'_, DatabaseManager>,
+    _db: State<'_, DatabaseManager>,
 ) -> Result<String, String> {
     let app_dir = dirs::data_dir()
         .ok_or("Failed to get data directory")?
@@ -188,7 +187,7 @@ pub async fn load_ner_model(
 #[tauri::command]
 pub async fn run_ner_inference(
     request: NerInferenceRequest,
-    ner_manager: State<'_, Arc<Mutex<Option<NerModelManager>>>>,
+    _ner_manager: State<'_, Arc<Mutex<Option<NerModelManager>>>>,
     hybrid_detector: State<'_, Arc<Mutex<Option<HybridDetector>>>>,
 ) -> Result<NerResult, String> {
     // Get hybrid detector
@@ -213,7 +212,7 @@ pub async fn run_ner_inference(
     detector.set_mode(mode).await;
 
     // Detect entities
-    let entities = detector
+    let _entities = detector
         .detect(&request.text)
         .await
         .map_err(|e| format!("Detection failed: {}", e))?;
@@ -239,7 +238,85 @@ pub async fn get_ner_recommendations() -> Result<serde_json::Value, String> {
         "fastest": registry.get_fastest_model().map(|m| m.model_id.clone()),
         "most_accurate": registry.get_most_accurate_model().map(|m| m.model_id.clone()),
         "multilingual": registry.get_multilingual_model().map(|m| m.model_id.clone()),
+        "legal_models": {
+            "de": registry.get_recommended_legal_model("de").map(|m| m.model_id.clone()),
+            "en": registry.get_recommended_legal_model("en").map(|m| m.model_id.clone()),
+            "fr": registry.get_recommended_legal_model("fr").map(|m| m.model_id.clone()),
+            "nl": registry.get_recommended_legal_model("nl").map(|m| m.model_id.clone()),
+            "ru": registry.get_recommended_legal_model("ru").map(|m| m.model_id.clone()),
+            "zh": registry.get_recommended_legal_model("zh").map(|m| m.model_id.clone()),
+        },
+        "supported_legal_languages": registry.get_supported_legal_languages(),
     }))
+}
+
+/// Get NER model recommendations for a specific language
+#[tauri::command]
+pub async fn get_ner_recommendations_for_language(
+    language: String,
+) -> Result<serde_json::Value, String> {
+    let registry = NerModelRegistry::new();
+
+    let recommended = registry.get_recommended_legal_model(&language);
+    let all_models = registry.get_legal_models_by_language(&language);
+
+    Ok(serde_json::json!({
+        "language": language,
+        "recommended_model": recommended.map(|m| serde_json::json!({
+            "model_id": m.model_id.clone(),
+            "name": m.name.clone(),
+            "description": m.description.clone(),
+            "accuracy": m.accuracy,
+        })),
+        "all_models": all_models.iter().map(|m| serde_json::json!({
+            "model_id": m.model_id.clone(),
+            "name": m.name.clone(),
+            "description": m.description.clone(),
+            "accuracy": m.accuracy,
+            "size": m.size.clone(),
+            "parameters": m.parameters.clone(),
+        })).collect::<Vec<_>>(),
+    }))
+}
+
+/// Get models by use case (legal-german, legal-english, fastest, etc.)
+#[tauri::command]
+pub async fn get_ner_models_by_use_case(
+    use_case: String,
+) -> Result<Vec<NerModelResponse>, String> {
+    let registry = NerModelRegistry::new();
+    let models = registry.get_recommendations_by_use_case(&use_case);
+
+    // Check which models are downloaded
+    let app_dir = dirs::data_dir()
+        .ok_or("Failed to get data directory")?
+        .join("bear-llm-ai")
+        .join("ner_models");
+
+    let downloader = NerModelDownloader::new(app_dir)
+        .map_err(|e| format!("Failed to create downloader: {}", e))?;
+
+    let mut responses = Vec::new();
+    for model in models {
+        let is_downloaded = downloader.is_downloaded(&model.model_id).await;
+
+        responses.push(NerModelResponse {
+            model_id: model.model_id.clone(),
+            name: model.name.clone(),
+            description: model.description.clone(),
+            provider: model.provider.clone(),
+            model_type: model.model_type.clone(),
+            language: model.language.clone(),
+            size: model.size.clone(),
+            parameters: model.parameters.clone(),
+            file_size: model.file_size,
+            accuracy: model.accuracy,
+            is_downloaded,
+            is_active: false,
+        });
+    }
+
+    Ok(responses)
 }
 
 /// Cancel NER model download

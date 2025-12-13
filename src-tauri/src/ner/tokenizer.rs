@@ -1,6 +1,5 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use candle_core::{Device, Tensor};
-use std::path::Path;
 use tokenizers::tokenizer::Tokenizer;
 
 /// Tokenizer wrapper for NER tasks
@@ -10,17 +9,6 @@ pub struct NerTokenizer {
 }
 
 impl NerTokenizer {
-    /// Load tokenizer from directory
-    pub fn from_file(tokenizer_path: &Path, max_length: usize) -> Result<Self> {
-        let tokenizer = Tokenizer::from_file(tokenizer_path)
-            .map_err(|e| anyhow::anyhow!("Failed to load tokenizer: {}", e))?;
-
-        Ok(Self {
-            tokenizer,
-            max_length,
-        })
-    }
-
     /// Tokenize text and return input tensors
     pub fn encode(&self, text: &str, device: &Device) -> Result<EncodingOutput> {
         // Encode text
@@ -64,37 +52,6 @@ impl NerTokenizer {
             offsets,
         })
     }
-
-    /// Tokenize text in batches
-    pub fn encode_batch(&self, texts: Vec<&str>, device: &Device) -> Result<Vec<EncodingOutput>> {
-        texts
-            .iter()
-            .map(|text| self.encode(text, device))
-            .collect()
-    }
-
-    /// Get special token IDs
-    pub fn get_cls_token_id(&self) -> Option<u32> {
-        self.tokenizer
-            .token_to_id("[CLS]")
-    }
-
-    pub fn get_sep_token_id(&self) -> Option<u32> {
-        self.tokenizer
-            .token_to_id("[SEP]")
-    }
-
-    pub fn get_pad_token_id(&self) -> Option<u32> {
-        self.tokenizer
-            .token_to_id("[PAD]")
-    }
-
-    /// Decode token IDs back to text
-    pub fn decode(&self, token_ids: &[u32], skip_special_tokens: bool) -> Result<String> {
-        self.tokenizer
-            .decode(token_ids, skip_special_tokens)
-            .map_err(|e| anyhow::anyhow!("Decoding error: {}", e))
-    }
 }
 
 /// Output from tokenization
@@ -110,7 +67,7 @@ pub struct EncodingOutput {
 pub fn align_tokens_with_text(
     tokens: &[String],
     offsets: &[(usize, usize)],
-    original_text: &str,
+    _original_text: &str,
 ) -> Vec<TokenAlignment> {
     tokens
         .iter()

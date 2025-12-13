@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 
 use crate::database::DatabaseManager;
 use crate::models::{
-    DownloadProgress, DownloadStatus, ModelDownloader, ModelInfo, ModelRegistry, ModelValidator,
+    DownloadProgress, DownloadStatus, ModelDownloader, ModelRegistry, ModelValidator,
 };
 use entity::models;
 
@@ -29,12 +29,6 @@ pub struct ModelListItem {
     pub is_downloaded: bool,
     pub download_url: String,
     pub tags: Vec<String>,
-}
-
-/// Request for downloading a model
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DownloadModelRequest {
-    pub model_id: String,
 }
 
 // Global state for download tracking
@@ -185,20 +179,22 @@ pub async fn download_model(
 
     let download_url = model_info.download_url.clone();
     let model_id_clone = model_id.clone();
+    let model_id_clone2 = model_id.clone();
     let app_clone = app.clone();
-    let db_clone = db.inner().clone();
-    let download_state_clone = download_state.inner().clone();
+    let db_manager: DatabaseManager = (*db).clone();
+    let download_state_arc = (*download_state.inner()).clone();
 
     tokio::spawn(async move {
+        let app_progress = app_clone.clone();
         let result = downloader
             .download_model(&model_id_clone, &download_url, move |progress| {
                 // Emit progress event to frontend
-                let _ = app_clone.emit("model-download-progress", &progress);
+                let _ = app_progress.emit("model-download-progress", &progress);
             })
             .await;
 
         // Update database based on result
-        if let Some(conn) = db_clone.get_connection().await {
+        if let Some(conn) = db_manager.get_connection().await {
             match result {
                 Ok(file_path) => {
                     // Verify checksum
@@ -231,7 +227,7 @@ pub async fn download_model(
                     let _ = app_clone.emit(
                         "model-download-progress",
                         &DownloadProgress {
-                            model_id: model_id_clone.clone(),
+                            model_id: model_id_clone2.clone(),
                             downloaded_bytes: 0,
                             total_bytes: 0,
                             percentage: 100.0,
@@ -252,7 +248,7 @@ pub async fn download_model(
                     let _ = app_clone.emit(
                         "model-download-progress",
                         &DownloadProgress {
-                            model_id: model_id_clone.clone(),
+                            model_id: model_id_clone2.clone(),
                             downloaded_bytes: 0,
                             total_bytes: 0,
                             percentage: 0.0,
@@ -267,7 +263,7 @@ pub async fn download_model(
         }
 
         // Clear download state
-        let mut state = download_state_clone.lock().await;
+        let mut state = download_state_arc.lock().await;
         *state = None;
     });
 
@@ -556,7 +552,7 @@ pub async fn import_model_file(
         .await
         .map_err(|e| format!("Failed to create models directory: {}", e))?;
 
-    let downloader = ModelDownloader::new(models_dir.clone())
+    let _downloader = ModelDownloader::new(models_dir.clone())
         .map_err(|e| format!("Failed to create downloader: {}", e))?;
 
     let filename = source_path

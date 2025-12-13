@@ -119,7 +119,7 @@ pub async fn detect_pii_entities(
     anonymizer: State<'_, AnonymizerState>,
 ) -> Result<Vec<crate::pii::Entity>, String> {
     let anon = anonymizer.lock().await;
-    let settings = AnonymizationSettings::default();
+    let _settings = AnonymizationSettings::default();
 
     // Just detect, don't anonymize
     let result = anon.detector.detect(&text);
@@ -132,17 +132,13 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_anonymize_text_command() {
-        let anonymizer_state: AnonymizerState = Arc::new(Mutex::new(Anonymizer::new()));
+    async fn test_anonymize_text_logic() {
+        let mut anonymizer = Anonymizer::new();
 
-        let request = AnonymizeRequest {
-            text: "John Doe emailed jane@example.com.".to_string(),
-            settings: None,
-        };
+        let text = "John Doe emailed jane@example.com.";
+        let settings = AnonymizationSettings::default();
 
-        let result = anonymize_text(request, State::from(&anonymizer_state))
-            .await
-            .unwrap();
+        let result = anonymizer.anonymize(text, &settings);
 
         assert!(!result.anonymized_text.contains("John Doe"));
         assert!(!result.anonymized_text.contains("jane@example.com"));

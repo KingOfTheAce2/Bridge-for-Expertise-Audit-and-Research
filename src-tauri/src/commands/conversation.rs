@@ -1,12 +1,12 @@
 use crate::ai::{
     ChatMessage, GenerateRequest, GenerationConfig, GenerationResult, InferenceEngine,
-    ModelConfig, ModelStatus, TokenResponse,
+    ModelConfig, ModelStatus,
 };
 use crate::database::DatabaseManager;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tauri::State;
+use tauri::{Emitter, State};
 use tokio::sync::Mutex;
 
 /// Request to load AI model for inference
@@ -83,12 +83,22 @@ pub async fn get_ai_model_status(
     Ok(status_str.to_string())
 }
 
+/// Get device information (CPU, CUDA, Metal)
+#[tauri::command]
+pub async fn get_device_info(
+    inference_engine: State<'_, Arc<Mutex<InferenceEngine>>>,
+) -> Result<String, String> {
+    let engine = inference_engine.lock().await;
+    let device_info = engine.get_device_info().await;
+    Ok(device_info)
+}
+
 /// Generate AI response
 #[tauri::command]
 pub async fn generate_ai_response(
     request: GenerateTextRequest,
     inference_engine: State<'_, Arc<Mutex<InferenceEngine>>>,
-    db: State<'_, DatabaseManager>,
+    _db: State<'_, DatabaseManager>,
 ) -> Result<GenerationResult, String> {
     let engine = inference_engine.lock().await;
 
@@ -205,8 +215,8 @@ pub async fn get_system_prompts() -> Result<Vec<SystemPrompt>, String> {
 /// Get conversation history
 #[tauri::command]
 pub async fn get_conversation_history(
-    conversation_id: i32,
-    db: State<'_, DatabaseManager>,
+    _conversation_id: i32,
+    _db: State<'_, DatabaseManager>,
 ) -> Result<Vec<ChatMessage>, String> {
     // TODO: Implement database query to get conversation messages
     // For now, return empty
@@ -216,8 +226,8 @@ pub async fn get_conversation_history(
 /// Create new conversation
 #[tauri::command]
 pub async fn create_conversation(
-    title: Option<String>,
-    db: State<'_, DatabaseManager>,
+    _title: Option<String>,
+    _db: State<'_, DatabaseManager>,
 ) -> Result<i32, String> {
     // TODO: Implement database insert for new conversation
     // For now, return placeholder ID
@@ -228,7 +238,7 @@ pub async fn create_conversation(
 #[tauri::command]
 pub async fn delete_conversation(
     conversation_id: i32,
-    db: State<'_, DatabaseManager>,
+    _db: State<'_, DatabaseManager>,
 ) -> Result<String, String> {
     // TODO: Implement database delete
     Ok(format!("Conversation {} deleted", conversation_id))
@@ -246,9 +256,9 @@ pub struct SystemPrompt {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_system_prompts() {
-        let prompts = tokio_test::block_on(get_system_prompts()).unwrap();
+    #[tokio::test]
+    async fn test_system_prompts() {
+        let prompts = get_system_prompts().await.unwrap();
         assert!(prompts.len() >= 4);
         assert!(prompts.iter().any(|p| p.id == "assistant"));
         assert!(prompts.iter().any(|p| p.id == "legal"));
