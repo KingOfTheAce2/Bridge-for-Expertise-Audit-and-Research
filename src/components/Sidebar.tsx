@@ -1,55 +1,106 @@
-import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import '../styles/Sidebar.css';
 
-const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) => {
-  const { pathname } = useLocation()
-  const active = pathname === to
-  return (
-    <Link
-      to={to}
-      className={
-        'block px-4 py-2 rounded-md transition-colors ' +
-        (active
-          ? 'bg-gray-200 dark:bg-gray-700 font-medium'
-          : 'hover:bg-gray-100 dark:hover:bg-gray-800')
-      }
-    >
-      {children}
-    </Link>
-  )
+interface NavItem {
+  to: string;
+  icon: string;
+  label: string;
 }
 
-const Sidebar: React.FC = () => {
+const mainNavItems: NavItem[] = [
+  { to: '/', icon: '🏠', label: 'Home' },
+  { to: '/chat', icon: '💬', label: 'AI Chat' },
+];
+
+const toolsNavItems: NavItem[] = [
+  { to: '/models', icon: '🤖', label: 'AI Models' },
+  { to: '/ner-models', icon: '🧠', label: 'NER Models' },
+  { to: '/pii-protection', icon: '🛡️', label: 'PII Protection' },
+];
+
+const infoNavItems: NavItem[] = [
+  { to: '/about-ai', icon: 'ℹ️', label: 'About AI' },
+  { to: '/settings', icon: '⚙️', label: 'Settings' },
+  { to: '/about', icon: '📋', label: 'About' },
+];
+
+const NavLink: React.FC<{ item: NavItem }> = ({ item }) => {
+  const { pathname } = useLocation();
+  const isActive = pathname === item.to;
+
   return (
-    <aside className="w-64 bg-white dark:bg-gray-850 border-r border-gray-200 dark:border-gray-800 flex flex-col">
-      <div className="p-4">
-        <h1 className="text-xl font-bold">BEAR LLM AI</h1>
-        <p className="text-sm text-gray-500">v0.0.20</p>
+    <Link
+      to={item.to}
+      className={`nav-link ${isActive ? 'active' : ''}`}
+    >
+      <span className="nav-link-icon">{item.icon}</span>
+      {item.label}
+    </Link>
+  );
+};
+
+const Sidebar: React.FC = () => {
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    root.classList.toggle('dark');
+  };
+
+  return (
+    <aside className="sidebar">
+      {/* Header */}
+      <div className="sidebar-header">
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-icon">
+            <span role="img" aria-label="Bear">🐻</span>
+          </div>
+          <div className="sidebar-brand">
+            <h1 className="sidebar-brand-name">BEAR LLM AI</h1>
+            <p className="sidebar-brand-version">v0.0.20</p>
+          </div>
+        </div>
       </div>
-      <nav className="px-2 space-y-1">
-        <NavLink to="/">Home</NavLink>
-        <NavLink to="/chat">AI Chat</NavLink>
-        <NavLink to="/models">AI Models</NavLink>
-        <NavLink to="/ner-models">NER Models</NavLink>
-        <NavLink to="/pii-protection">PII Protection</NavLink>
-        <NavLink to="/about-ai">About AI</NavLink>
-        <NavLink to="/settings">Settings</NavLink>
-        <NavLink to="/about">About</NavLink>
+
+      {/* Navigation */}
+      <nav className="sidebar-nav">
+        {/* Main */}
+        <div className="nav-section">
+          <div className="nav-section-title">Main</div>
+          {mainNavItems.map((item) => (
+            <NavLink key={item.to} item={item} />
+          ))}
+        </div>
+
+        {/* Tools */}
+        <div className="nav-section">
+          <div className="nav-section-title">Tools</div>
+          {toolsNavItems.map((item) => (
+            <NavLink key={item.to} item={item} />
+          ))}
+        </div>
+
+        {/* Info */}
+        <div className="nav-section">
+          <div className="nav-section-title">Info</div>
+          {infoNavItems.map((item) => (
+            <NavLink key={item.to} item={item} />
+          ))}
+        </div>
       </nav>
-      <div className="mt-auto p-3 text-xs text-gray-500">
+
+      {/* Footer */}
+      <div className="sidebar-footer">
         <button
-          className="w-full rounded-md px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800"
-          onClick={() => {
-            const root = document.documentElement
-            root.classList.toggle('dark')
-          }}
+          className="theme-toggle-btn"
+          onClick={toggleTheme}
           aria-label="Toggle theme"
         >
+          <span role="img" aria-label="Theme">🌓</span>
           Toggle Theme
         </button>
       </div>
     </aside>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;
